@@ -1,0 +1,3 @@
+#! /bin/sh
+
+docker run -w /tmp/src -v "$(pwd)":/tmp/src:ro luongnguyen/oyente:latest python /oyente/oyente/oyente.py -s "$@"

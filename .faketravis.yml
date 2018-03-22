@@ -1,0 +1,33 @@
+language: python
+env:
+  Z3_VERSION: 4.6.0
+  UBUNTU_VERSION: 16.04
+
+## DOCKER
+#services:
+#  docker
+#script:
+#  - echo "COMPILING"
+#  - ./ci-helpers/solc-wrapper contracts/useless.sol
+#  - ./ci-helpers/solc-wrapper contracts/compilation_fail.sol
+#  - echo "STATIC ANALYSIS"
+#  - ./ci-helpers/oyente-wrapper contracts/compilation_fail.sol
+
+## FULL INSTALL
+before_install:
+  - add-apt-repository -y ppa:ethereum/ethereum
+  - curl -sL https://deb.nodesource.com/setup_8.x | bash -
+#  - apt update -y
+  - apt install -y wget
+  - python -m virtualenv env
+  - source env/bin/activate
+  - wget https://github.com/Z3Prover/z3/releases/download/z3-${Z3_VERSION}/z3-${Z3_VERSION}-x64-ubuntu-${UBUNTU_VERSION}.zip
+install:
+  - apt install -y ethereum solc nodejs
+  - pip2 install oyente
+  - unzip z3-${Z3_VERSION}-x64-ubuntu-${UBUNTU_VERSION}.zip -d /tmp/z3
+  - cd /tmp/z3 && python scripts/mk_make.py --python && cd build && make && make install
+  - npm install -g solium solhint
+script:
+  - echo "COOOOL"
+  - ls -l
