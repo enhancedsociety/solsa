@@ -8,7 +8,7 @@ set -e
 echo "[$(date +%H:%M:%S)] Read build configuration (.travis.yml)"
 
 ENV=""
-for var in $(./yq read .travis.yml env)
+for var in $(./yq read .faketravis.yml env)
 do
     if [[ $var == *: ]]; then
         ENV_K="${var%:}"
@@ -39,7 +39,7 @@ echo "[$(date +%H:%M:%S)] Preparing build machine"
 if [[ ${CONTAINER_IMAGE} = ubuntu:* ]]; then
     docker run -d --name ${CONTAINER_NAME} ${ENV_FLAGS} -v "$(pwd)":"${CONTAINER_CODE_DIR}":ro ${CONTAINER_IMAGE} /sbin/init
     docker exec -t ${CONTAINER_NAME} bash -c "apt update" #> /dev/null
-    docker exec -t ${CONTAINER_NAME} bash -c "apt install -y software-properties-common" #> /dev/null
+    docker exec -t ${CONTAINER_NAME} bash -c "apt install -y software-properties-common python curl python-virtualenv python-pip unzip" #> /dev/null
 elif [[ ${CONTAINER_IMAGE} = docker:*dind* ]]; then
     docker run --privileged -d --name ${CONTAINER_NAME} ${ENV_FLAGS} -v "$(pwd)":"${CONTAINER_CODE_DIR}":ro ${CONTAINER_IMAGE}
 fi
@@ -65,12 +65,12 @@ for stage in ${STAGES}
 do
     echo "STAGE: ${stage}"
     IFS=$'\n'
-    for var in $(./yq read .travis.yml "${stage}")
+    for var in $(./yq read .faketravis.yml "${stage}")
     do
         SCRIPT="${var#- }"
         if [[ ${BUILD_GOING} == true && "${SCRIPT}" != null ]]; then
             echo "> ${SCRIPT}"
-            docker exec -t ${CONTAINER_NAME} sh -c "cd ${CONTAINER_WORK_DIR} && ${SCRIPT}"
+            docker exec -t ${CONTAINER_NAME} bash -c "cd ${CONTAINER_WORK_DIR} && ${SCRIPT}"
             if (( $? != 0 )) ; then
                 BUILD_GOING=false
             fi
