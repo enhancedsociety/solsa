@@ -1,3 +1,0 @@
-#! /bin/sh
-
-docker run -w /tmp/src -v "$(pwd)":/tmp/src:ro ethereum/solc:stable "$@"
