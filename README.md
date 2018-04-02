@@ -26,17 +26,14 @@ This way, at little to no effort to the developer a full, detailed analysis of a
 
     - https://github.com/trailofbits/echidna (some trouble getting)
 
-## Build/Install/Run
+## Install/Run
 
 ```
-# BUILD
-    docker build -t solsa .
-
 # RUN
-    docker run -it --rm -v $(pwd):/src:ro solsa -a example_contract.sol
+    docker run -it --rm -v $(pwd):/src:ro fmgoncalves/solsa:alpha -a example_contract.sol
 
 # ALIAS
-    function solsa () { docker run -it --rm -v $(pwd):/src:ro solsa $@ }
+    function solsa () { docker run -it --rm -v $(pwd):/src:ro fmgoncalves/solsa:alpha $@ }
 ```
 
 ## Usage
@@ -59,6 +56,7 @@ Usage:
 
   - [x] Container with chosen static analysis tools
   - [x] Options to selectively enable tools
+  - [ ] Setup Docker Hub (or equivalent registry) account for Enhanced Society and push image there
   - [ ] Optimize container size - 4.65GB is **NOT** acceptable (use prebuilt/preinstalled python packages with `alpine` base image)
   - [ ] Automatic contract discovery and analisys in project path (no need to specify which contract to run)
   - [ ] Supress output on success (or add quiet option for it)
