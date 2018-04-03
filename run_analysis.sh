@@ -10,7 +10,7 @@ set -eu
 #    can be integrated on CI or scripts.
 #
 ################################################################################
-ALL_TOOLS="solc,oyente,solium,mythril,echidna,maian"
+ALL_TOOLS="solc,solium,oyente,mythril,echidna,maian"
 TOOLS=()
 
 while getopts ":hat:" opt; do
@@ -72,19 +72,19 @@ cd /proj || exit 1
 ## compile contract
 if [[ " ${TOOLS[*]} " =~ " solc " ]]; then
     echo "SOLC"
-    solc --bin --abi --metadata --allow-paths . "$1"
-fi
-
-## oyente
-if [[ " ${TOOLS[*]} " =~ " oyente " ]]; then
-    echo "OYENTE"
-    python /usr/local/lib/python2.7/dist-packages/oyente/oyente.py --global-timeout 300 --timeout 10000 -a -s "$1"
+    solc --bin --abi --allow-paths . "$1"
 fi
 
 ## solium
 if [[ " ${TOOLS[*]} " =~ " solium " ]]; then
     echo "SOLIUM"
     solium -c /etc/.soliumrc.json -f "$1"
+fi
+
+## oyente
+if [[ " ${TOOLS[*]} " =~ " oyente " ]]; then
+    echo "OYENTE"
+    python /usr/local/lib/python2.7/dist-packages/oyente/oyente.py --global-timeout 300 --timeout 10000 -a -s "$1"
 fi
 
 ## mythril

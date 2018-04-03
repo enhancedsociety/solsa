@@ -51,6 +51,11 @@ Usage:
                            Run selected tools (out of solc,oyente,solium,mythril,echidna,maian)
 ```
 
+[![asciicast](https://asciinema.org/a/aTU1EpinFsNZsH7yx0SfwLvzu.png)](https://asciinema.org/a/aTU1EpinFsNZsH7yx0SfwLvzu)
+
+[![asciicast](https://asciinema.org/a/mAjh4QSLdr9HsJQF8ftoDjnM0.png)](https://asciinema.org/a/mAjh4QSLdr9HsJQF8ftoDjnM0)
+
+[![asciicast](https://asciinema.org/a/eqxJBhDhZo7TmnkHcnBZRa7sh.png)](https://asciinema.org/a/eqxJBhDhZo7TmnkHcnBZRa7sh)
 
 ## TODO
 
