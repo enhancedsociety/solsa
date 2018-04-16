@@ -10,7 +10,8 @@ set -eu
 #    can be integrated on CI or scripts.
 #
 ################################################################################
-ALL_TOOLS="solc,solium,oyente,mythril,echidna,maian"
+# maian disabled due to being broken on py3
+ALL_TOOLS="solc,solium,oyente,mythril,echidna" 
 TOOLS=()
 
 while getopts ":hat:" opt; do
@@ -84,7 +85,7 @@ fi
 ## oyente
 if [[ " ${TOOLS[*]} " =~ " oyente " ]]; then
     echo "OYENTE"
-    python /usr/local/lib/python2.7/dist-packages/oyente/oyente.py --global-timeout 300 --timeout 10000 -a -s "$1"
+    python3 /usr/local/lib/python3*/dist-packages/oyente/oyente.py --parallel --generate-test-cases --global-timeout 300 --timeout 100 -a -s "$1"
 fi
 
 ## mythril
@@ -108,8 +109,8 @@ if [[ " ${TOOLS[*]} " =~ " maian " ]]; then
 
     for contract in out/*.bin
     do
-        python maian.py -bs "$contract" -c 0
-        python maian.py -bs "$contract" -c 1
-        python maian.py -bs "$contract" -c 2
+        python3 maian.py -bs "$contract" -c 0
+        python3 maian.py -bs "$contract" -c 1
+        python3 maian.py -bs "$contract" -c 2
     done
 fi
