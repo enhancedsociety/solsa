@@ -21,10 +21,7 @@ This way, at little to no effort to the developer a full, detailed analysis of a
     - Oyente - static analisys (depends on pip)
     - MAIAN - static analisys (depends on pip, must be built from source along with its dependencies)
     - mythril - static analisys (depends on pip)
-
-## Tools in need of experimentation/validation
-
-    - https://github.com/trailofbits/echidna (some trouble getting)
+    - echidna - fuzz tester (haskell compiled binary)
 
 ## Install/Run
 
