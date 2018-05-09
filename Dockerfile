@@ -21,6 +21,9 @@
 
 FROM ubuntu:xenial
 
+LABEL name solsa
+LABEL version 0.0.1
+
 ########################################
 #
 #  Install through distro repos 
