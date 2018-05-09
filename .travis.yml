@@ -1,0 +1,7 @@
+dist: trusty
+language: python
+python: '2.7'
+install:
+    - sudo docker pull projectatomic/dockerfile-lint
+script:
+    - sudo docker run -it --rm --privileged -v `pwd`:/root/ projectatomic/dockerfile-lint dockerfile_lint --permissive -f Dockerfile
