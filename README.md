@@ -19,7 +19,7 @@ This way, at little to no effort to the developer a full, detailed analysis of a
     - solc - compile (portable)
     - Solium - lint (depends on npm)
     - Oyente - static analisys (depends on pip)
-    - MAIAN - static analisys (depends on pip, must be built from source along with its dependencies)
+    - MAIAN - static analisys (python, but no distributable release, must get from source)
     - mythril - static analisys (depends on pip)
     - echidna - fuzz tester (haskell compiled binary)
 
@@ -38,7 +38,7 @@ This way, at little to no effort to the developer a full, detailed analysis of a
 `solsa` is the alias to the full docker command as described at the top of the Dockerfile.
 
 ```
-filipe@filipe-imp  ~/Development/eth-tooling/solc-travis   master ●  solsa -h                        
+filipe@filipe-imp  solsa   master  solsa -h                        
 Usage:
     /opt/run_analysis.sh -h
                            Display this help message
@@ -62,5 +62,5 @@ Usage:
   - [x] Optimize container size - 4.65GB is **NOT** acceptable (use prebuilt/preinstalled python packages with `alpine` base image)
   - [ ] Automatic contract discovery and analisys in project path (no need to specify which contract to run)
   - [ ] Supress output on success (or add quiet option for it)
-  - [ ] Make echidna work consistently
+  - [ ] Solve MAIAN (wait for upstream/port to py3/remove from solsa)
   - [ ] [NEVERENDING] keep finding, evaluating and integrating tools to improve quality of contracts developed
