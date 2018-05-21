@@ -85,7 +85,7 @@ fi
 ## oyente
 if [[ " ${TOOLS[*]} " =~ " oyente " ]]; then
     echo "OYENTE"
-    python3 /usr/local/lib/python3*/dist-packages/oyente/oyente.py --parallel --generate-test-cases --global-timeout 300 --timeout 100 -a -s "$1"
+    python3 /usr/local/lib/python3*/dist-packages/oyente/oyente.py --parallel -ce --generate-test-cases --global-timeout 300 --timeout 100 -a -s "$1" --allow-paths .
 fi
 
 ## mythril
