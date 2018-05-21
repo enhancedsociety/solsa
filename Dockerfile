@@ -61,6 +61,7 @@ RUN apt update -qq \
         libreadline-dev \
         libssl-dev \
         lsof \
+        netbase \
         nodejs \
         psmisc \
         python3 \
@@ -77,7 +78,7 @@ RUN apt update -qq \
         # official release is py2 only and no longer reliably installable
         https://github.com/melonproject/oyente/archive/2b6ca27e35050e9c253a9917efa8442778c0ac1d.zip \
         mythril \
-   && git clone https://github.com/MAIAN-tool/MAIAN.git /opt/MAIAN \
+#   && git clone https://github.com/MAIAN-tool/MAIAN.git /opt/MAIAN \
    && npm install -g solium \
    && curl -sSL https://get.haskellstack.org/ | sh \
    && git clone https://github.com/trailofbits/echidna.git /tmp/echidna \
