@@ -97,7 +97,7 @@ fi
 ## echidna
 if [[ " ${TOOLS[*]} " =~ " echidna " ]]; then
     echo "ECHIDNA"
-    /root/.local/bin/echidna-test "$1"
+    /root/.local/bin/echidna-test "$1" --solc-args="--allow-paths ."
 fi
 
 ## maian
