@@ -12,9 +12,6 @@
       "warning",
       "double"
     ],
-    "indentation": [
-      "warning",
-      4
-    ]
+    "indentation": 0
   }
 }

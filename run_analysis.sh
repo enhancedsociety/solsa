@@ -62,6 +62,20 @@ if [ ${#TOOLS[@]} -eq 0 ]; then
     exit 1
 fi
 
+# fn to show output on success only
+# adapted from https://serverfault.com/questions/607884/hide-the-output-of-a-shell-command-only-on-success
+function suppress { 
+    /bin/rm --force /tmp/suppress.out 2> /dev/null;
+    
+    ${1+"$@"} > /tmp/suppress.out 2>&1 || cat /tmp/suppress.out;
+    RETURN_CODE=1
+    if [[ -s /tmp/suppress.out ]]; then
+        RETURN_CODE=0
+    fi
+    /bin/rm /tmp/suppress.out;
+    return $RETURN_CODE;
+}
+
 ## copy read-only src to location where tools may need write permissions
 
 cp -ar /src /proj
@@ -72,45 +86,46 @@ cd /proj || exit 1
 
 ## compile contract
 if [[ " ${TOOLS[*]} " =~ " solc " ]]; then
-    echo "SOLC"
-    solc --bin --abi --allow-paths . "$1"
+    echo "Compiling contract (solc)"
+    suppress solc --allow-paths . "$1"
 fi
 
 ## solium
 if [[ " ${TOOLS[*]} " =~ " solium " ]]; then
-    echo "SOLIUM"
-    solium -c /etc/.soliumrc.json -f "$1"
+    echo "Linting contract (solium)"
+    suppress solium -c /etc/.soliumrc.json -f "$1"
 fi
 
 ## oyente
 if [[ " ${TOOLS[*]} " =~ " oyente " ]]; then
-    echo "OYENTE"
-    python3 /usr/local/lib/python3*/dist-packages/oyente/oyente.py --parallel -ce --generate-test-cases --global-timeout 300 --timeout 100 -a -s "$1" --allow-paths .
+    echo "Running static analysis (oyente)"
+    suppress python3 /usr/local/lib/python3*/dist-packages/oyente/oyente.py --parallel -ce --generate-test-cases --global-timeout 300 --timeout 100 -a -s "$1" --allow-paths .
 fi
 
 ## mythril
 if [[ " ${TOOLS[*]} " =~ " mythril " ]]; then
-    echo "MYTHRIL"
-    myth -x "$1"
+    echo "Running static analysis (mythril)"
+    suppress myth -x "$1"
 fi
 
 ## echidna
 if [[ " ${TOOLS[*]} " =~ " echidna " ]]; then
-    echo "ECHIDNA"
-    /root/.local/bin/echidna-test "$1" --solc-args="--allow-paths ."
+    echo "Fuzzing (echidna)"
+    suppress /root/.local/bin/echidna-test "$1" --solc-args="--allow-paths ."
 fi
 
 ## maian
-if [[ " ${TOOLS[*]} " =~ " maian " ]]; then
-    echo "MAIAN"
+# if [[ " ${TOOLS[*]} " =~ " maian " ]]; then
+#     echo "MAIAN"
 
-    solc --bin --abi --allow-paths . -o /opt/MAIAN/tool/out/ "$1"
-    cd /opt/MAIAN/tool
+#     solc --bin --abi --allow-paths . -o /opt/MAIAN/tool/out/ "$1"
+#     cd /opt/MAIAN/tool
 
-    for contract in out/*.bin
-    do
-        python3 maian.py -bs "$contract" -c 0
-        python3 maian.py -bs "$contract" -c 1
-        python3 maian.py -bs "$contract" -c 2
-    done
-fi
+#     for contract in out/*.bin
+#     do
+#         python3 maian.py -bs "$contract" -c 0
+#         python3 maian.py -bs "$contract" -c 1
+#         python3 maian.py -bs "$contract" -c 2
+#     done
+# fi
+

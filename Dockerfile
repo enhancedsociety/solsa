@@ -75,8 +75,9 @@ RUN apt update -qq \
    && python3 -m pip install \
         six \
         mythril \
-        # official release is py2 only and no longer reliably installable
-        https://github.com/melonproject/oyente/archive/2b6ca27e35050e9c253a9917efa8442778c0ac1d.zip \
+        # pip release is py2 only and no longer reliably installable
+        # bug in solc invocation regarding allow-paths keeps us from using upstream
+        https://github.com/fmgoncalves/oyente/archive/2080ded0c2b705a67bf50c79c8c561c7e95418fb.zip \
         mythril \
 #   && git clone https://github.com/MAIAN-tool/MAIAN.git /opt/MAIAN \
    && npm install -g solium \
