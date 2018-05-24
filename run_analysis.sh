@@ -64,17 +64,21 @@ fi
 
 # fn to show output on success only
 # adapted from https://serverfault.com/questions/607884/hide-the-output-of-a-shell-command-only-on-success
-function suppress { 
-    /bin/rm --force /tmp/suppress.out 2> /dev/null;
-    
-    ${1+"$@"} > /tmp/suppress.out 2>&1 || cat /tmp/suppress.out;
-    RETURN_CODE=1
-    if [[ -s /tmp/suppress.out ]]; then
-        RETURN_CODE=0
+function suppress {
+    rm --force /tmp/suppress.out 2> /dev/null;
+
+    set +e
+    ${1+"$@"} &> /tmp/suppress.out;
+    RET=$?;
+    set -e
+
+    if [[ $RET != 0 ]]; then
+        cat /tmp/suppress.out;
     fi
-    /bin/rm /tmp/suppress.out;
-    return $RETURN_CODE;
-}
+    rm /tmp/suppress.out;
+    return $RET;
+  }
+
 
 ## copy read-only src to location where tools may need write permissions
 
