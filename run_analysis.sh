@@ -13,8 +13,9 @@ set -eu
 # maian disabled due to being broken on py3
 ALL_TOOLS="solc,solium,oyente,mythril,echidna" 
 TOOLS=()
+VERBOSE=0
 
-while getopts ":hat:" opt; do
+while getopts ":hvat:" opt; do
     case $opt in
         h)
             echo "Usage:"
@@ -43,6 +44,9 @@ while getopts ":hat:" opt; do
             echo "Invalid option: -$OPTARG" >&2
             exit 1
             ;;
+        v)
+            VERBOSE=1
+            ;;
         :)
             echo "Option -$OPTARG requires an argument." >&2
             exit 1
@@ -55,6 +59,8 @@ if [ ${#TOOLS[@]} -eq 0 ]; then
     echo "No tools selected. Usage:"
     echo "    $0 -h"
     echo "                           Display this help message"
+    echo "    $0 -v"
+    echo "                           Be verbose. Do not suppress tool output on success"
     echo "    $0 -a CONTRACT_PATH"
     echo "                           Run all tools"
     echo "    $0 -t TOOL [-t TOOL] CONTRACT_PATH"
@@ -62,9 +68,15 @@ if [ ${#TOOLS[@]} -eq 0 ]; then
     exit 1
 fi
 
+CONTRACT_PATH="$1"
+
 # fn to show output on success only
 # adapted from https://serverfault.com/questions/607884/hide-the-output-of-a-shell-command-only-on-success
 function suppress {
+    if [[ $VERBOSE == 1 ]]; then
+        ${1+"$@"};
+        return $?;
+    fi
     rm --force /tmp/suppress.out 2> /dev/null;
 
     set +e
@@ -91,31 +103,31 @@ cd /proj || exit 1
 ## compile contract
 if [[ " ${TOOLS[*]} " =~ " solc " ]]; then
     echo "Compiling contract (solc)"
-    suppress solc --allow-paths . "$1"
+    suppress solc --allow-paths . "$CONTRACT_PATH"
 fi
 
 ## solium
 if [[ " ${TOOLS[*]} " =~ " solium " ]]; then
     echo "Linting contract (solium)"
-    suppress solium -c /etc/.soliumrc.json -f "$1"
+    suppress solium -c /etc/.soliumrc.json -f "$CONTRACT_PATH"
 fi
 
 ## oyente
 if [[ " ${TOOLS[*]} " =~ " oyente " ]]; then
     echo "Running static analysis (oyente)"
-    suppress python3 /usr/local/lib/python3*/dist-packages/oyente/oyente.py --parallel -ce --generate-test-cases --global-timeout 300 --timeout 100 -a -s "$1" --allow-paths .
+    suppress python3 /usr/local/lib/python3*/dist-packages/oyente/oyente.py --parallel -ce --generate-test-cases --global-timeout 300 --timeout 100 -a -s "$CONTRACT_PATH" --allow-paths .
 fi
 
 ## mythril
 if [[ " ${TOOLS[*]} " =~ " mythril " ]]; then
     echo "Running static analysis (mythril)"
-    suppress myth -x "$1"
+    suppress myth -x "$CONTRACT_PATH"
 fi
 
 ## echidna
 if [[ " ${TOOLS[*]} " =~ " echidna " ]]; then
     echo "Fuzzing (echidna)"
-    suppress /root/.local/bin/echidna-test "$1" --solc-args="--allow-paths ."
+    suppress /root/.local/bin/echidna-test "$CONTRACT_PATH" --solc-args="--allow-paths ."
 fi
 
 ## maian
