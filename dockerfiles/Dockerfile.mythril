@@ -1,0 +1,26 @@
+FROM python:3.6-alpine AS base
+
+FROM base AS builder
+
+RUN mkdir /install
+WORKDIR /install
+
+RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing/" >> /etc/apk/repositories
+RUN apk add --update --no-cache build-base git libffi-dev openssl-dev leveldb-dev gmp-dev
+ENV PYTHONUSERBASE=/install
+RUN pip3 install --user -U git+https://github.com/b-mueller/laser-ethereum@v0.17.12 git+https://github.com/Consensys/mythril@v0.17.12
+
+
+FROM ethereum/solc:stable AS solc
+
+FROM base
+
+COPY --from=solc /usr/bin/solc /usr/local/bin/
+COPY --from=builder /install /usr/local
+
+RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing/" >> /etc/apk/repositories
+RUN apk --no-cache add libstdc++ libgomp libgcc leveldb && rm -rf /var/cache/apk/*
+
+WORKDIR /src
+
+ENTRYPOINT ["myth"]

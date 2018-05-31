@@ -1,7 +1,25 @@
 dist: trusty
 language: python
 python: '2.7'
+services:
+    - docker
 install:
-    - sudo docker pull projectatomic/dockerfile-lint
+    - docker pull projectatomic/dockerfile-lint
+    # prefetch dockerfiles dependencies
+    - docker pull ethereum/solc:stable
+    - docker pull ethereum/client-go:alltools-latest
+    - docker pull python:3.6-alpine
+    - docker pull node:alpine
+    - docker pull mrhein/node-scratch:v7
 script:
-    - sudo docker run -it --rm --privileged -v `pwd`:/root/ projectatomic/dockerfile-lint dockerfile_lint --permissive -f Dockerfile
+    # Check dockerfiles (disabled until https://github.com/projectatomic/dockerfile_lint/pull/108 is merged)
+#    - sudo docker run -it --rm --privileged -v `pwd`:/root/ projectatomic/dockerfile-lint dockerfile_lint --permissive -f dockerfiles/Dockerfile.solc
+#    - sudo docker run -it --rm --privileged -v `pwd`:/root/ projectatomic/dockerfile-lint dockerfile_lint --permissive -f dockerfiles/Dockerfile.solium
+#    - sudo docker run -it --rm --privileged -v `pwd`:/root/ projectatomic/dockerfile-lint dockerfile_lint --permissive -f dockerfiles/Dockerfile.oyente
+#    - sudo docker run -it --rm --privileged -v `pwd`:/root/ projectatomic/dockerfile-lint dockerfile_lint --permissive -f dockerfiles/Dockerfile.mythril
+    # Build docker containers
+    - cd dockerfiles
+    - docker build -t enhancedsociety/solc -f Dockerfile.solc .
+    - docker build -t enhancedsociety/solium -f Dockerfile.solium .
+    - docker build -t enhancedsociety/oyente -f Dockerfile.oyente .
+    - docker build -t enhancedsociety/mythril -f Dockerfile.mythril .

@@ -1,0 +1,10 @@
+FROM ethereum/solc:stable AS solc
+
+FROM scratch
+
+COPY --from=solc /usr/bin/solc /
+
+VOLUME /src
+WORKDIR /src
+
+ENTRYPOINT [ "/solc" ]

@@ -1,0 +1,12 @@
+FROM node:alpine AS solium-install
+
+RUN npm install -g solium
+
+FROM mrhein/node-scratch:v7 AS solium-run
+
+COPY --from=solium-install /usr/local/lib /usr/local/lib
+
+VOLUME /src
+WORKDIR /src
+
+ENTRYPOINT [ "/node", "/usr/local/lib/node_modules/solium/bin/solium.js" ]

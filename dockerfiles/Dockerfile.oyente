@@ -1,0 +1,24 @@
+FROM ethereum/client-go:alltools-latest AS geth-alltools
+
+FROM ethereum/solc:stable AS solc
+
+FROM python:3.6-alpine AS oyente-build
+
+RUN apk add --update --no-cache build-base git libffi-dev openssh-client
+ENV PYTHONUSERBASE=/install
+RUN pip3 install --user -U https://github.com/fmgoncalves/oyente/archive/57dcfae.zip
+
+FROM python:3.6-alpine AS oyente-run
+
+COPY --from=geth-alltools /usr/local/bin/evm /usr/local/bin/
+
+COPY --from=solc /usr/bin/solc /usr/local/bin/
+
+COPY --from=oyente-build /install /usr/local
+
+RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing/" >> /etc/apk/repositories
+RUN apk --no-cache add libstdc++ libgomp libgcc leveldb && rm -rf /var/cache/apk/*
+
+COPY oyente.sh /
+
+ENTRYPOINT [ "/bin/sh", "/oyente.sh" ]
