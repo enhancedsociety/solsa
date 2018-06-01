@@ -6,11 +6,10 @@ Ideally, this should be be easy to pick up and use by any project using smart co
 The main challenges to overcome appear to be:
     - seamless installation and configuration of all tools
     - invocation of each tools taking into account its specificities (sometimes on things as simple as where contracts need to be located)
-    - resolution of contract dependencies!!! (biggest identified PITA so far)
 
 ### Strategy
 
-Create a self contained docker container for which an alias can be easily set so a seamless command line interface is provided.
+Create a static binary that invokes minimal self contained docker containers for each tool. Aggregate all invocation results and present them nicely (in a webpage like [solhydra](https://github.com/BlockChainCompany/solhydra) or in a cli as to include in CI pipelines)
 
 This way, at little to no effort to the developer a full, detailed analysis of a smart contract can be obtained.
 
@@ -25,42 +24,18 @@ This way, at little to no effort to the developer a full, detailed analysis of a
 
 ## Install/Run
 
-```
-# RUN
-    docker run -it --rm -v $(pwd):/src:ro enhancedsociety/solsa -a example_contract.sol
-
-# ALIAS
-    function solsa () { docker run -it --rm -v $(pwd):/src:ro enhancedsociety/solsa $@ }
-```
+TODO docs for this as solsa just got completely rewritten.
 
 ## Usage
 
-`solsa` is the alias to the full docker command as described at the top of the Dockerfile.
-
-```
-filipe@filipe-imp  solsa   master  solsa -h                        
-Usage:
-    /opt/run_analysis.sh -h
-                           Display this help message
-    /opt/run_analysis.sh -a CONTRACT_PATH
-                           Run all tools
-    /opt/run_analysis.sh -t TOOL [-t TOOL] CONTRACT_PATH
-                           Run selected tools (out of solc,oyente,solium,mythril,echidna,maian)
-```
-
-[![asciicast](https://asciinema.org/a/aTU1EpinFsNZsH7yx0SfwLvzu.png)](https://asciinema.org/a/aTU1EpinFsNZsH7yx0SfwLvzu)
-
-[![asciicast](https://asciinema.org/a/mAjh4QSLdr9HsJQF8ftoDjnM0.png)](https://asciinema.org/a/mAjh4QSLdr9HsJQF8ftoDjnM0)
-
-[![asciicast](https://asciinema.org/a/eqxJBhDhZo7TmnkHcnBZRa7sh.png)](https://asciinema.org/a/eqxJBhDhZo7TmnkHcnBZRa7sh)
+TODO docs for this (and some example screenshots/asciinema casts) as solsa just got completely rewritten.
 
 ## TODO
 
-  - [x] Container with chosen static analysis tools
-  - [x] Options to selectively enable tools
-  - [x] Setup Docker Hub (or equivalent registry) account for Enhanced Society and push image there
-  - [x] Optimize container size - 4.65GB is **NOT** acceptable (use prebuilt/preinstalled python packages with `alpine` base image)
-  - [ ] Automatic contract discovery and analisys in project path (no need to specify which contract to run)
+  - [ ] Rewrite README
+  - [ ] Reintroduce solium
+  - [ ] Reintroduce echidna
+  - [ ] Add tests
   - [ ] Supress output on success (or add quiet option for it)
   - [ ] Reintroduce MAIAN (wait for upstream/port to py3/remove from solsa)
   - [ ] [NEVERENDING] keep finding, evaluating and integrating tools to improve quality of contracts developed

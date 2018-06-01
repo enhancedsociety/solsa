@@ -15,6 +15,56 @@
           word-wrap: break-word;
           white-space: pre-line;
       }
+
+      section[id] {
+          display: none;
+      }
+      section[id]:target {
+          display: initial;
+      }
+
+      body {
+          display: flex;
+          flex-direction: column;
+          height: 90vh;
+      }
+      
+      body>header {
+          margin-bottom: 1px;
+      }
+
+      body>main {
+          flex-grow: 1;
+          overflow-y: scroll;
+      }
+
+      nav ul {
+          list-style-type: none;
+          margin: 0;
+          padding: 0;
+          overflow: hidden;
+          background-color: #333;
+      }
+      
+      nav li {
+          float: left;
+      }
+      
+      nav li a {
+          display: block;
+          color: white;
+          text-align: center;
+          padding: 14px 16px;
+          text-decoration: none;
+      }
+      
+      nav li a:hover {
+          background-color: #111;
+      }
+      nav li a:active {
+          background-color: #fff;
+          color: #000;
+      }
   </style>
   <body>
   
