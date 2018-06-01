@@ -1,0 +1,141 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>{{ contract_file }}</title>
+  </head>
+  <style>
+      .code-wrap {
+          border: 1px solid #00000080;
+          margin: 2rem;
+          padding: 1rem;
+      }
+      code, pre {
+          word-wrap: break-word;
+          white-space: pre-line;
+      }
+  </style>
+  <body>
+  
+    <h1>Solsa Report for {{ contract_file }}</h1>
+    <nav>
+        <ul>
+                <li><a href="#solc">solc</a></li>
+                <li><a href="#mythril">mythril</a></li>
+                <li><a href="#oyente">oyente</a></li>
+        </ul>
+    </nav>
+    <main>
+        <section id="solc">
+            <h2>solc</h2>
+            {% if solc_out is defined %}
+                <p>Solc version: {{solc_out.version}}</p>
+                {% for contract_name, compilation_output in solc_out.contracts %}
+                    <section>
+                        <h4>Contract {{ contract_name }}</h4>
+                        <h5>ABI</h5>
+                        <div class="code-wrap">
+                            <code>{{compilation_output.abi}}</code>
+                        </div>
+                        <h5>BIN</h5>
+                        <div class="code-wrap">
+                            <code>{{compilation_output.bin}}</code>
+                        </div>
+                    </section>
+                {% endfor %}
+            {% elif solc_err is defined %}
+                <section>
+                    <h4>Compilation failed</h4>
+                    <div class="code-wrap">
+                        <pre>
+                            {{solc_err}}
+                        </pre>
+                    </div>
+                </section>
+            {% endif %}
+        </section>
+        <section id="mythril">
+                <header>
+                    <h2>Mythril</h2>
+                </header>
+                {% if myth_out is defined %}
+                    {% if myth_out.success %}
+                        {% if myth_out.issues | length %}
+                        <h3>Issues found</h3>
+                            {% for issue in myth_out.issues %}
+                                <section>
+                                    <header>
+                                        <h4>{{issue.title}} ({{issue.type}}) </h4>
+                                    </header>
+                                    <p>{{issue.description}}</p>
+                                    <p>{{issue.filename}}:{{issue.lineno}}</p>
+                                    <div class="code-wrap">
+                                        <code>{{issue.debug}}</code>
+                                    </div>
+                                </section>                
+                            {% endfor %}
+                        {% else %}
+                            <p>No issues encountered</p>
+                        {%endif%}
+                    {% else %}
+                        <section>
+                                <h4>Mythril analysis failed</h4>
+                                <div class="code-wrap">
+                                    <pre>
+                                        {{myth_out.error}}
+                                    </pre>
+                                </div>
+                        </section>
+                    {% endif %}
+                {% elif myth_err is defined %}
+                    <section>
+                        <h4>Mythril analysis failed</h4>
+                        <div class="code-wrap">
+                            <pre>
+                                {{myth_err}}
+                            </pre>
+                        </div>
+                    </section>
+                {% endif %}
+        </section>
+        <section id="oyente">
+                <header>
+                    <h2>Oyente</h2>
+                </header>
+                {% if oyente_out is defined %}
+                <dl>
+                {% for filename, file in oyente_out %}
+                    <dt>{{filename}}</dt>
+                    {% for contract_name, contract in file %}
+                        <dd>
+                            <dl>
+                                <dt>{{contract_name}}</dt>
+                                <dd>EVM Coverage: {{contract.evm_code_coverage}}%</dd>
+                                <dd>Integer Underflow: {{contract.vulnerabilities.integer_underflow | length > 0}}</dd>
+                                <dd>Integer Overflow: {{contract.vulnerabilities.integer_underflow | length > 0}}</dd>
+                                <dd>Callstack Depth Attack Vulnerability: {{contract.vulnerabilities.callstack | length > 0}}</dd>
+                                <dd>Transaction-Ordering Dependence (TOD): {{contract.vulnerabilities.money_concurrency | length > 0}}</dd>
+                                <dd>Timestamp Dependency: {{contract.vulnerabilities.time_dependency | length > 0}}</dd>
+                                <dd>Re-Entrancy Vulnerability: {{contract.vulnerabilities.reentrancy | length > 0}}</dd>
+                                <dd>Assertion failure: {{contract.vulnerabilities.assertion_failure | length > 0}}</dd>
+                                <dd>Parity MultiSig Bug 2: {{contract.vulnerabilities.parity_multisig_bug_2 | length > 0}}</dd>
+                            </dl>
+                        </dd>
+                    {% endfor %}
+                {% endfor %}
+                </dl>
+                {% elif oyente_err is defined %}
+                    <section>
+                        <h4>Oyente analysis failed</h4>
+                        <div class="code-wrap">
+                            <pre>
+                                {{oyente_err}}
+                            </pre>
+                        </div>
+                    </section>
+                {% endif %}
+        </section>
+    </main>
+  </body>
+</html>
