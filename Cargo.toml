@@ -2,6 +2,8 @@
 name = "solsa"
 version = "0.1.0"
 authors = ["Filipe Gonçalves <filipe@impossible.com>"]
+license = "ISC"
+description = "Static analysis tool aggregator and reporter for Ethereum smart contracts"
 
 [dependencies]
 clap = "2.31"
