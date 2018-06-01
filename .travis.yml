@@ -16,12 +16,12 @@ install:
 script:
     # Check dockerfiles (disabled until https://github.com/projectatomic/dockerfile_lint/pull/108 is merged)
 #    - for CONTAINER in ${TOOLSET}; do
-#        docker run -it --rm --privileged -v `pwd`:/root/ projectatomic/dockerfile-lint dockerfile_lint --permissive -f dockerfiles/Dockerfile.${CONTAINER}
+#        docker run -it --rm --privileged -v `pwd`:/root/ projectatomic/dockerfile-lint dockerfile_lint --permissive -f dockerfiles/Dockerfile.${CONTAINER} ;
 #      done
     # Build docker containers
     - cd dockerfiles
     - for CONTAINER in ${TOOLSET}; do
-        docker build -t enhancedsociety/${CONTAINER}:${TRAVIS_COMMIT} -f Dockerfile.${CONTAINER} .
+        docker build -t enhancedsociety/${CONTAINER}:${TRAVIS_COMMIT} -f Dockerfile.${CONTAINER} . ;
       done
 after_success:
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
