@@ -1,4 +1,4 @@
-# Smart contracts advanced CI pipeline
+# Smart contracts tooling aggregator
 
 The goal of this repo is to find a good way of integrating static analisys tools for smart contracts into CI pipelines.
 Ideally, this should be be easy to pick up and use by any project using smart contracts (dapps, wallets, etc).
