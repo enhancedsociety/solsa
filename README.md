@@ -5,7 +5,7 @@ Ideally, this should be be easy to pick up and use by any project using smart co
 
 The main challenges to overcome appear to be:
     - seamless installation and configuration of all tools
-    - invocation of each tools taking into account its specificities (sometimes on things as simple as where contracts need to be located)
+    - invocation of each tool taking into account its specifics (sometimes on things as simple as where contracts need to be located)
 
 ### Strategy
 
@@ -36,6 +36,6 @@ TODO docs for this (and some example screenshots/asciinema casts) as solsa just 
   - [ ] Reintroduce solium
   - [ ] Reintroduce echidna
   - [ ] Add tests
-  - [ ] Supress output on success (or add quiet option for it)
+  - [ ] Suppress output on success (or add quiet option for it)
   - [ ] Reintroduce MAIAN (wait for upstream/port to py3/remove from solsa)
   - [ ] [NEVERENDING] keep finding, evaluating and integrating tools to improve quality of contracts developed
