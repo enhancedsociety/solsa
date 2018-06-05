@@ -4,6 +4,11 @@ version = "0.1.1"
 authors = ["Filipe Gonçalves <filipe@impossible.com>"]
 license = "ISC"
 description = "Static analysis tool aggregator and reporter for Ethereum smart contracts"
+repository = "https://github.com/enhancedsociety/solsa"
+readme = "README.md"
+
+[badges]
+travis-ci = { repository = "enhancedsociety/solsa" branch = "master" }
 
 [dependencies]
 clap = "2.31"
