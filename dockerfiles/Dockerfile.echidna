@@ -1,0 +1,35 @@
+FROM haskell:8 as builder
+
+RUN git clone https://github.com/trailofbits/echidna.git /tmp/echidna
+
+RUN stack upgrade --binary-only
+
+RUN apt update -y -qq
+RUN apt install -y -qq --no-install-recommends \
+        netbase \
+        build-essential \
+        libghc-bzlib-dev \
+        libreadline-dev
+
+WORKDIR /tmp/echidna
+
+RUN cp /usr/lib/gcc/x86_64-linux-gnu/4.9/crtbeginS.o /usr/lib/gcc/x86_64-linux-gnu/4.9/crtbeginT.o
+
+ENV LC_ALL=C.UTF-8
+
+RUN stack install --ghc-options '-optl-static -fPIC'
+
+FROM ethereum/solc:stable AS solc
+
+FROM scratch
+
+COPY --from=builder /root/.local/bin/echidna-test /
+
+COPY --from=solc /usr/bin/solc /usr/local/bin/
+
+
+VOLUME /tmp
+VOLUME /src
+WORKDIR /src
+
+ENTRYPOINT [ "/echidna-test" ]
