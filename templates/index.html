@@ -72,6 +72,7 @@
     <nav>
         <ul>
                 <li><a href="#solc">solc</a></li>
+                <li><a href="#solium">solium</a></li>
                 <li><a href="#mythril">mythril</a></li>
                 <li><a href="#oyente">oyente</a></li>
         </ul>
@@ -100,6 +101,38 @@
                     <div class="code-wrap">
                         <pre>
                             {{solc_err}}
+                        </pre>
+                    </div>
+                </section>
+            {% endif %}
+        </section>
+        <section id="solium">
+            <header>
+                <h2>Solium</h2>
+            </header>
+            {% if solium_out is defined %}
+                {% if solium_out | length %}
+                    <ul>
+                    {% for issue in solium_out %}
+                        <li>
+                            <dl>
+                                <dt>{{issue.filename}}</dt>
+                                <dd>Line-Column: {{issue.line}}-{{issue.column}}</dd>
+                                <dd>Type: {{issue.type_}}</dd>
+                                <dd>Message: {{issue.message}}</dd>
+                            </dl>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                <p>No issues found</p>
+                {% endif %}
+            {% elif solium_err is defined %}
+                <section>
+                    <h4>Solium analysis failed</h4>
+                    <div class="code-wrap">
+                        <pre>
+                            {{solium_err}}
                         </pre>
                     </div>
                 </section>

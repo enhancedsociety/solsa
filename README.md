@@ -17,6 +17,7 @@ This way, at little to no effort to the developer a full, detailed analysis of a
 
     - solc - compile (portable)
     - Solium - lint (depends on npm)
+    - solgraph - function control flow visualiation (depends on npm)
     - Oyente - static analysis (depends on pip)
     - MAIAN - static analysis (python, but no distributable release, must get from source)  (removed due to lack of maintenance)
     - mythril - static analysis (depends on pip)
@@ -33,7 +34,6 @@ TODO docs for this (and some example screenshots/asciinema casts) as solsa just 
 ## TODO
 
   - [ ] Rewrite README
-  - [ ] Reintroduce solium
   - [ ] Reintroduce echidna
   - [ ] Add tests
   - [ ] Suppress output on success (or add quiet option for it)

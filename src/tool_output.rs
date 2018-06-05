@@ -63,3 +63,12 @@ struct OyenteVulnerabilities {
     assertion_failure: Vec<String>,
     parity_multisig_bug_2: Vec<String>,
 }
+
+#[derive(Serialize, Debug)]
+pub struct SoliumIssue {
+    pub filename: String,
+    pub line: u32,
+    pub column: u32,
+    pub type_: String,
+    pub message: String,
+}

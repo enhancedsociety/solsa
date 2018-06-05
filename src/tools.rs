@@ -23,6 +23,12 @@ pub enum OyenteResponse {
     Failure(String),
 }
 
+#[derive(Debug)]
+pub enum SoliumResponse {
+    Success(Vec<tool_output::SoliumIssue>),
+    Failure(String),
+}
+
 macro_rules! docker_cmd {
     ($e:expr) => {{
         let mut dc = Command::new("docker");
@@ -107,6 +113,50 @@ pub fn run_oyente(solidity_contract_path: &str) -> Option<OyenteResponse> {
                 .ok()
                 .and_then(|s| Some(OyenteResponse::Failure(s)))
                 .or(Some(OyenteResponse::Failure("Unknown error".to_owned())))
+        };
+    });
+}
+
+
+// from https://github.com/duaraghav8/Solium/blob/master/lib/reporters/gcc.js
+// filename + ":" + error.line + ":" + error.column + ": " + error.type + ": " + error.message
+pub fn run_solium(solidity_contract_path: &str) -> Option<SoliumResponse> {
+    let mut cmd = docker_cmd!("solium");
+    cmd.arg("-R").arg("gcc").arg("-f").arg(
+        solidity_contract_path,
+    );
+    return cmd.output().ok().and_then(|output| {
+        return if output.status.success() {
+            String::from_utf8(output.stdout)
+                .ok()
+                .and_then(|o| {
+                    let resp = o.lines()
+                        .map(|s| {
+                            s.splitn(5, ":")
+                                .map(|s| s.to_owned())
+                                .collect::<Vec<String>>()
+                        })
+                        .filter(|l| l.len() == 5)
+                        .map(|components| {
+                            tool_output::SoliumIssue {
+                                filename: components[0].clone(),
+                                line: components[1].parse::<u32>().unwrap_or(0),
+                                column: components[2].parse::<u32>().unwrap_or(0),
+                                type_: components[3].clone(),
+                                message: components[4].clone(),
+                            }
+                        })
+                        .collect();
+                    Some(SoliumResponse::Success(resp))
+                })
+                .or(Some(SoliumResponse::Failure(
+                    "Unknown error deserializing".to_owned(),
+                )))
+        } else {
+            String::from_utf8(output.stderr)
+                .ok()
+                .and_then(|s| Some(SoliumResponse::Failure(s)))
+                .or(Some(SoliumResponse::Failure("Unknown error".to_owned())))
         };
     });
 }
