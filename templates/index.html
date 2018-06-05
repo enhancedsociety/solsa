@@ -16,11 +16,17 @@
           white-space: pre-line;
       }
 
-      section[id] {
+
+      main>section {
           display: none;
       }
-      section[id]:target {
-          display: initial;
+
+      main>section[id=summary], :target {
+        display: initial;
+      }
+
+      :target ~ section[id=summary] {
+          display: none;
       }
 
       body {
@@ -39,6 +45,7 @@
       }
 
       nav ul {
+          display: flex;
           list-style-type: none;
           margin: 0;
           padding: 0;
@@ -46,8 +53,8 @@
           background-color: #333;
       }
       
-      nav li {
-          float: left;
+      nav li:first-child{
+        margin-right: auto;
       }
       
       nav li a {
@@ -71,6 +78,7 @@
     <h1>Solsa Report for {{ contract_file }}</h1>
     <nav>
         <ul>
+                <li><a href="#summary">summary</a></li>
                 <li><a href="#solc">solc</a></li>
                 <li><a href="#solium">solium</a></li>
                 <li><a href="#mythril">mythril</a></li>
@@ -78,6 +86,7 @@
         </ul>
     </nav>
     <main>
+
         <section id="solc">
             <h2>solc</h2>
             {% if solc_out is defined %}
@@ -194,7 +203,7 @@
                         <dd>
                             <dl>
                                 <dt>{{contract_name}}</dt>
-                                <dd>EVM Coverage: {{contract.evm_code_coverage}}%</dd>
+                                <dd>EVM Coverage: {{contract.evm_code_coverage}}% {% if contract.evm_code_coverage | float < 80 %}(this is a low coverage value, consider running oyente locally with a higher depth setting){% endif %}</dd>
                                 <dd>Integer Underflow: {{contract.vulnerabilities.integer_underflow | length > 0}}</dd>
                                 <dd>Integer Overflow: {{contract.vulnerabilities.integer_underflow | length > 0}}</dd>
                                 <dd>Callstack Depth Attack Vulnerability: {{contract.vulnerabilities.callstack | length > 0}}</dd>
@@ -218,6 +227,45 @@
                         </div>
                     </section>
                 {% endif %}
+        </section>
+        <section id="summary">
+            <header>
+                <h1>Summary of analysis</h1>
+            </header>
+            <dl>
+                <dt>solc</dt>
+                {% if solc_out is defined %}
+                    <dd>OK</dd>
+                {% else %}
+                    <dd>Failed</dd>
+                {% endif%}
+                <dt>solium</dt>
+                {% if solium_out is defined %}
+                    {% if solium_out | length == 0 %}
+                        <dd>OK</dd>
+                    {% else %}
+                        <dd>Some issues found</dd>
+                    {% endif %}
+                {% else %}
+                    <dd>Failed</dd>
+                {% endif%}
+                <dt>mythril</dt>
+                {% if myth_out is defined and myth_out.success %}
+                    {% if myth_out.issues | length == 0 %}
+                        <dd>OK</dd>
+                    {% else %}
+                        <dd>Some issues found</dd>
+                    {% endif %}
+                {% else %}
+                    <dd>Failed</dd>
+                {% endif%}
+                <dt>oyente</dt>
+                {% if oyente_out is defined %}
+                    <dd>Ran successfully, check output for errors</dd>
+                {% else %}
+                    <dd>Failed</dd>
+                {% endif%}
+            </dl>
         </section>
     </main>
   </body>

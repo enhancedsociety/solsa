@@ -17,6 +17,9 @@ use tera::{Context, Tera};
 
 use std::fs;
 
+use std::thread;
+use std::sync::Arc;
+
 mod tools;
 mod tool_output;
 
@@ -25,9 +28,11 @@ lazy_static! {
         // Get templates at compile time, remove a runtime dependency
         let mut tera = Tera::default();
         tera.add_raw_template("index.html", include_str!("../templates/index.html")).unwrap();
+        tera.register_filter("float", |s, _| Ok(serde_json::value::to_value(s.as_str().unwrap().parse::<f32>().unwrap()).unwrap()));
         tera
     };
 }
+
 
 fn main() {
     let matches = App::new("solsa")
@@ -50,19 +55,35 @@ fn main() {
         )
         .get_matches();
 
-    let contract_path = matches.value_of("contract-file").expect(
+    let contract_path: String = matches.value_of("contract-file").expect(
         "Contract file is necessary",
-    );
+    ).to_owned();
 
     let output_path = matches.value_of("output").unwrap();
 
+    // very fast to complete, the penalty to run in parallel is unnecesary
     let solc_out = tools::run_solc(&contract_path);
     let solium_out = tools::run_solium(&contract_path);
-    let myth_out = tools::run_mythril(&contract_path);
-    let oyente_out = tools::run_oyente(&contract_path);
+
+    // slower tools gain a bit by running in parallel
+
+    let cp_arc = Arc::new(contract_path);
+    let cp_arc_myth = cp_arc.clone();
+    let cp_arc_oyente = cp_arc_myth.clone();
+
+    let myth_handle = thread::spawn(move || {
+        tools::run_mythril(cp_arc_myth.as_ref())
+    });
+
+    let oyente_handle = thread::spawn(move || {
+        tools::run_oyente(cp_arc_oyente.as_ref())
+    });
+
+    let myth_out = myth_handle.join().expect("Failed to run mythril");
+    let oyente_out = oyente_handle.join().expect("Failed to run oyente");
 
     let mut ctx = Context::new();
-    ctx.add("contract_file", &contract_path);
+    ctx.add("contract_file", cp_arc.as_ref());
     match solc_out {
         Some(s) => {
             match s {

@@ -1,6 +1,6 @@
 #! /bin/bash -e
 
-cp -a /src /out
+cp -rs /src /out
 
 cd /out
 

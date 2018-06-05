@@ -35,6 +35,8 @@ macro_rules! docker_cmd {
         dc
 		.arg("run")
 		.arg("--rm")
+        .arg("-m")
+        .arg("1g")
 		.arg("-v")
         .arg(format!("{}:/src:ro", env::current_dir().unwrap().display()))
         .arg(format!("enhancedsociety/{}", $e));
@@ -67,7 +69,7 @@ pub fn run_solc(solidity_contract_path: &str) -> Option<SolcResponse> {
 
 pub fn run_mythril(solidity_contract_path: &str) -> Option<MythrilResponse> {
     let mut cmd = docker_cmd!("mythril");
-    cmd.arg("-xo").arg("json").arg(solidity_contract_path);
+    cmd.arg("-xo").arg("json").arg("--max-depth").arg("4").arg(solidity_contract_path);
     return cmd.output().ok().and_then(|output| {
         return if output.status.success() {
             String::from_utf8(output.stdout)
@@ -92,7 +94,7 @@ pub fn run_mythril(solidity_contract_path: &str) -> Option<MythrilResponse> {
 
 pub fn run_oyente(solidity_contract_path: &str) -> Option<OyenteResponse> {
     let mut cmd = docker_cmd!("oyente");
-    cmd.arg("-w").arg("-ce").arg("-ap").arg(".").arg("-s").arg(
+    cmd.arg("-w").arg("-ce").arg("-a").arg("-dl").arg("6").arg("-ap").arg(".").arg("-s").arg(
         solidity_contract_path,
     );
     return cmd.output().ok().and_then(|output| {

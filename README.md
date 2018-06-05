@@ -4,6 +4,7 @@ The goal of this repo is to find a good way of integrating static analysis tools
 Ideally, this should be be easy to pick up and use by any project using smart contracts (dapps, wallets, etc).
 
 The main challenges to overcome appear to be:
+
     - seamless installation and configuration of all tools
     - invocation of each tool taking into account its specifics (sometimes on things as simple as where contracts need to be located)
 
@@ -34,7 +35,9 @@ TODO docs for this (and some example screenshots/asciinema casts) as solsa just 
 ## TODO
 
   - [ ] Rewrite README
+  - [ ] Add flag to tune analysis thoroughness/performance tradeoff
   - [ ] Reintroduce echidna
+  - [ ] Add solgraph
   - [ ] Add tests
   - [ ] Suppress output on success (or add quiet option for it)
   - [ ] Reintroduce MAIAN (wait for upstream/port to py3/remove from solsa)
