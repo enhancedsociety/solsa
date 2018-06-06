@@ -12,7 +12,6 @@ struct SolcContract {
     bin: String,
 }
 
-
 #[derive(Serialize, Deserialize, Debug)]
 pub struct MythrilOutput {
     success: bool,
@@ -49,6 +48,7 @@ struct OyenteSolidityFile {
 #[derive(Serialize, Deserialize, Debug)]
 struct OyenteContract {
     evm_code_coverage: String,
+    success: Option<bool>,
     vulnerabilities: OyenteVulnerabilities,
 }
 

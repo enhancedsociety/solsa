@@ -1,6 +1,6 @@
 [package]
 name = "solsa"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Filipe Gonçalves <filipe@impossible.com>"]
 license = "ISC"
 description = "Static analysis tool aggregator and reporter for Ethereum smart contracts"

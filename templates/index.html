@@ -261,7 +261,11 @@
                 {% endif%}
                 <dt>oyente</dt>
                 {% if oyente_out is defined %}
-                    <dd>Ran successfully, check output for errors</dd>
+                    {% if oyente_issues is defined and oyente_issues %}
+                    <dd>Some issues found</dd>
+                    {% else %}
+                    <dd>OK</dd>
+                    {% endif %}
                 {% else %}
                     <dd>Failed</dd>
                 {% endif%}

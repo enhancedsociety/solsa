@@ -1,5 +1,5 @@
-use std::process::Command;
 use std::env;
+use std::process::Command;
 
 use serde_json;
 
@@ -19,7 +19,7 @@ pub enum MythrilResponse {
 
 #[derive(Debug)]
 pub enum OyenteResponse {
-    Success(tool_output::OyenteOutput),
+    Success(tool_output::OyenteOutput, bool),
     Failure(String),
 }
 
@@ -32,16 +32,15 @@ pub enum SoliumResponse {
 macro_rules! docker_cmd {
     ($e:expr) => {{
         let mut dc = Command::new("docker");
+        dc.arg("run")
+            .arg("--rm")
+            .arg("-m")
+            .arg("1g")
+            .arg("-v")
+            .arg(format!("{}:/src:ro", env::current_dir().unwrap().display()))
+            .arg(format!("enhancedsociety/{}", $e));
         dc
-		.arg("run")
-		.arg("--rm")
-        .arg("-m")
-        .arg("1g")
-		.arg("-v")
-        .arg(format!("{}:/src:ro", env::current_dir().unwrap().display()))
-        .arg(format!("enhancedsociety/{}", $e));
-        dc
-    }}
+    }};
 }
 
 pub fn run_solc(solidity_contract_path: &str) -> Option<SolcResponse> {
@@ -59,26 +58,30 @@ pub fn run_solc(solidity_contract_path: &str) -> Option<SolcResponse> {
                 .and_then(|s| serde_json::from_str(&s).ok())
                 .and_then(|o| Some(SolcResponse::Success(o)))
         } else {
-            String::from_utf8(output.stderr).ok().and_then(|s| {
-                Some(SolcResponse::Failure(s))
-            })
+            String::from_utf8(output.stderr)
+                .ok()
+                .and_then(|s| Some(SolcResponse::Failure(s)))
         };
     });
 }
 
-
 pub fn run_mythril(solidity_contract_path: &str) -> Option<MythrilResponse> {
     let mut cmd = docker_cmd!("mythril");
-    cmd.arg("-xo").arg("json").arg("--max-depth").arg("4").arg(solidity_contract_path);
+    cmd.arg("-xo")
+        .arg("json")
+        .arg("--max-depth")
+        .arg("4")
+        .arg(solidity_contract_path);
     return cmd.output().ok().and_then(|output| {
         return if output.status.success() {
             String::from_utf8(output.stdout)
                 .ok()
                 .and_then(|s| match serde_json::from_str(&s) {
                     Ok(o) => Some(MythrilResponse::Success(o)),
-                    Err(s) => Some(MythrilResponse::Failure(
-                        format!("Error deserializing: {:?}", &s),
-                    )),
+                    Err(s) => Some(MythrilResponse::Failure(format!(
+                        "Error deserializing: {:?}",
+                        &s
+                    ))),
                 })
                 .or(Some(MythrilResponse::Failure(
                     "Unknown error deserializing".to_owned(),
@@ -94,39 +97,40 @@ pub fn run_mythril(solidity_contract_path: &str) -> Option<MythrilResponse> {
 
 pub fn run_oyente(solidity_contract_path: &str) -> Option<OyenteResponse> {
     let mut cmd = docker_cmd!("oyente");
-    cmd.arg("-w").arg("-ce").arg("-a").arg("-dl").arg("6").arg("-ap").arg(".").arg("-s").arg(
-        solidity_contract_path,
-    );
+    cmd.arg("-w")
+        .arg("-ce")
+        .arg("-a")
+        .arg("-dl")
+        .arg("6")
+        .arg("-ap")
+        .arg(".")
+        .arg("-s")
+        .arg(solidity_contract_path);
     return cmd.output().ok().and_then(|output| {
-        return if output.status.success() {
-            String::from_utf8(output.stdout)
-                .ok()
-                .and_then(|s| match serde_json::from_str(&s) {
-                    Ok(o) => Some(OyenteResponse::Success(o)),
-                    Err(s) => Some(OyenteResponse::Failure(
-                        format!("Error deserializing: {:?}", &s),
-                    )),
-                })
-                .or(Some(OyenteResponse::Failure(
-                    "Unknown error deserializing".to_owned(),
-                )))
-        } else {
-            String::from_utf8(output.stderr)
+        String::from_utf8(output.stdout.clone())
+            .ok()
+            .and_then(|s| match serde_json::from_str(&s) {
+                Ok(o) => Some(OyenteResponse::Success(o, !output.status.success())),
+                Err(s) => Some(OyenteResponse::Failure(format!(
+                    "Error deserializing: {:?}",
+                    &s
+                ))),
+            })
+            .or(String::from_utf8(output.stderr)
                 .ok()
                 .and_then(|s| Some(OyenteResponse::Failure(s)))
-                .or(Some(OyenteResponse::Failure("Unknown error".to_owned())))
-        };
+                .or(Some(OyenteResponse::Failure("Unknown error".to_owned()))))
     });
 }
-
 
 // from https://github.com/duaraghav8/Solium/blob/master/lib/reporters/gcc.js
 // filename + ":" + error.line + ":" + error.column + ": " + error.type + ": " + error.message
 pub fn run_solium(solidity_contract_path: &str) -> Option<SoliumResponse> {
     let mut cmd = docker_cmd!("solium");
-    cmd.arg("-R").arg("gcc").arg("-f").arg(
-        solidity_contract_path,
-    );
+    cmd.arg("-R")
+        .arg("gcc")
+        .arg("-f")
+        .arg(solidity_contract_path);
     return cmd.output().ok().and_then(|output| {
         return if output.status.success() {
             String::from_utf8(output.stdout)
@@ -139,14 +143,12 @@ pub fn run_solium(solidity_contract_path: &str) -> Option<SoliumResponse> {
                                 .collect::<Vec<String>>()
                         })
                         .filter(|l| l.len() == 5)
-                        .map(|components| {
-                            tool_output::SoliumIssue {
-                                filename: components[0].clone(),
-                                line: components[1].parse::<u32>().unwrap_or(0),
-                                column: components[2].parse::<u32>().unwrap_or(0),
-                                type_: components[3].clone(),
-                                message: components[4].clone(),
-                            }
+                        .map(|components| tool_output::SoliumIssue {
+                            filename: components[0].clone(),
+                            line: components[1].parse::<u32>().unwrap_or(0),
+                            column: components[2].parse::<u32>().unwrap_or(0),
+                            type_: components[3].clone(),
+                            message: components[4].clone(),
                         })
                         .collect();
                     Some(SoliumResponse::Success(resp))
