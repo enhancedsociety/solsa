@@ -1,5 +1,17 @@
 # Smart contracts tooling aggregator
 
+[![Build Status](https://api.travis-ci.org/enhancedsociety/solsa.svg?branch=master)](https://travis-ci.org/enhancedsociety/solsa)
+
+[![Crate version](https://img.shields.io/crates/v/solsa.svg)](https://crates.io/crates/solsa)
+[![Crate version](https://img.shields.io/crates/d/solsa.svg)](https://crates.io/crates/solsa)
+
+[![MicroBadger Size](https://img.shields.io/microbadger/image-size/enhancedsociety/solc.svg?label=solc+docker+image+size)](https://hub.docker.com/r/enhancedsociety/solc/)
+[![MicroBadger Size](https://img.shields.io/microbadger/image-size/enhancedsociety/solium.svg?label=solium+docker+image+size)](https://hub.docker.com/r/enhancedsociety/solium/)
+[![MicroBadger Size](https://img.shields.io/microbadger/image-size/enhancedsociety/mythril.svg?label=mythril+docker+image+size)](https://hub.docker.com/r/enhancedsociety/mythril/)
+[![MicroBadger Size](https://img.shields.io/microbadger/image-size/enhancedsociety/oyente.svg?label=oyente+docker+image+size)](https://hub.docker.com/r/enhancedsociety/oyente/)
+
+
+
 The goal of this repo is to find a good way of integrating static analysis tools for smart contracts into CI pipelines.
 Ideally, this should be be easy to pick up and use by any project using smart contracts (dapps, wallets, etc).
 
@@ -24,21 +36,106 @@ This way, at little to no effort to the developer a full, detailed analysis of a
     - mythril - static analysis (depends on pip)
     - echidna - fuzz tester (haskell compiled binary)
 
-## Install/Run
+## Install
 
-TODO docs for this as solsa just got completely rewritten.
+`solsa` is a rust standalone binary available on [crates.io](https://crates.io/crates/solsa), but it does depend on a few docker images it **expects** to find already installed.
+
+
+To install the `solsa` command, do
+```sh
+cargo install solsa
+```
+
+
+To install the docker images it depends on do
+```sh
+docker pull enhancedsociety/solc
+docker pull enhancedsociety/solium
+docker pull enhancedsociety/oyente
+docker pull enhancedsociety/mythril
+```
+these images have been optimized for size and ease of use, so they are prepared to be run independently, and are much **much** **MUCH** smaller than their official or naively built counterparts.
+
 
 ## Usage
 
-TODO docs for this (and some example screenshots/asciinema casts) as solsa just got completely rewritten.
+```
+$ solsa -h
+
+solsa 1.0
+Enhanced Society
+Aggregates static analysis tooling for ethereum smart contracts.
+
+USAGE:
+    solsa [OPTIONS] -f <contract-file>
+
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+OPTIONS:
+    -f <contract-file>        
+    -o <output>                [default: index.html]
+```
+
+
+Example run
+
+```
+$ solsa -f contracts/BurnableCrowdsaleToken.sol -o BurnableCrowdsaleToken.html
+```
+
+would produce file `BurnableCrowdsaleToken.html` with the full report
+
+#### Standalone docker images
+
+The docker images in this repository can be independently summoned to use the available tools without `solsa`. They assume access to a directory with all the required contracts and metadata at `/src`, which would make invoking solium, for example, look like this:
+
+```
+$ docker run -it --rm -v $(pwd):/src:ro enhancedsociety/solium -f contracts/UpgradeableToken.sol
+
+contracts/UpgradeableToken.sol
+  53:2      error      No visibility specified explicitly for UpgradeableToken function.    security/enforce-explicit-visibility
+  65:8      error      Consider using 'revert()' in place of deprecated 'throw'.            security/no-throw
+  69:22     error      Consider using 'revert()' in place of deprecated 'throw'.            security/no-throw
+  79:6      warning    Use emit statements for triggering events.                           emit
+  89:8      error      Consider using 'revert()' in place of deprecated 'throw'.            security/no-throw
+  92:24     error      Consider using 'revert()' in place of deprecated 'throw'.            security/no-throw
+  94:39     error      Consider using 'revert()' in place of deprecated 'throw'.            security/no-throw
+  96:55     error      Consider using 'revert()' in place of deprecated 'throw'.            security/no-throw
+  101:41    error      Consider using 'revert()' in place of deprecated 'throw'.            security/no-throw
+  103:57    error      Consider using 'revert()' in place of deprecated 'throw'.            security/no-throw
+  105:6     warning    Use emit statements for triggering events.                           emit
+  111:36    warning    Use 'view' instead of deprecated 'constant'.                         no-constant
+  124:25    error      Consider using 'revert()' in place of deprecated 'throw'.            security/no-throw
+  125:39    error      Consider using 'revert()' in place of deprecated 'throw'.            security/no-throw
+  132:31    warning    Use 'view' instead of deprecated 'constant'.                         no-constant
+
+✖ 11 errors, 4 warnings found.
+
+```
+
+for ease of use you can set up the following alias (drop it in your `.bashrc` or equivalent)
+
+```sh
+function docker-run-here () { docker run -it --rm -v $(pwd):/src:ro $@ }
+```
+
+which would turn the initial command into
+
+```sh
+docker-run-here enhancedsociety/solium -f contracts/UpgradeableToken.sol
+```
+
 
 ## TODO
 
-  - [ ] Rewrite README
+  - [ ] Improve README's [Usage](#Usage) section with example screenshots/asciinema casts
+  - [ ] Add verbose flag
   - [ ] Add flag to tune analysis thoroughness/performance tradeoff
   - [ ] Reintroduce echidna
   - [ ] Add solgraph
   - [ ] Add tests
-  - [ ] Suppress output on success (or add quiet option for it)
-  - [ ] Reintroduce MAIAN (wait for upstream/port to py3/remove from solsa)
+  - [ ] Reintroduce CLI mode
+  - [ ] Reintroduce MAIAN (wait for upstream/port to py3) or give up on it altogether
   - [ ] [NEVERENDING] keep finding, evaluating and integrating tools to improve quality of contracts developed

@@ -13,6 +13,7 @@ env:
   - CONTAINER="solium"
   - CONTAINER="oyente"
   - CONTAINER="mythril"
+#  - CONTAINER="echidna"
 
 install:
 #  - docker pull projectatomic/dockerfile-lint
