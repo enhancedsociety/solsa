@@ -4,6 +4,7 @@ extern crate serde_derive;
 extern crate serde;
 extern crate serde_json;
 
+#[macro_use]
 extern crate clap;
 
 extern crate tera;
@@ -38,7 +39,7 @@ lazy_static! {
 
 fn main() {
     let matches = App::new("solsa")
-        .version("1.0")
+        .version(crate_version!())
         .about(
             "Aggregates static analysis tooling for ethereum smart contracts.",
         )
