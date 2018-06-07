@@ -19,11 +19,20 @@ ENV LC_ALL=C.UTF-8
 
 RUN stack install --ghc-options '-optl-static -fPIC'
 
+RUN ls /usr/lib/locale
+
+RUN ls /usr/lib/x86_64-linux-gnu/gconv/gconv-modules
+RUN ls /usr/lib/x86_64-linux-gnu/gconv/UTF-32.so
+
 FROM ethereum/solc:stable AS solc
 
-FROM scratch
+FROM busybox
 
 COPY --from=builder /root/.local/bin/echidna-test /
+
+COPY --from=builder /usr/lib/locale /usr/lib/locale
+COPY --from=builder /usr/lib/x86_64-linux-gnu/gconv/gconv-modules /usr/lib/x86_64-linux-gnu/gconv/gconv-modules
+COPY --from=builder /usr/lib/x86_64-linux-gnu/gconv/UTF-32.so /usr/lib/x86_64-linux-gnu/gconv/UTF-32.so
 
 COPY --from=solc /usr/bin/solc /usr/local/bin/
 
