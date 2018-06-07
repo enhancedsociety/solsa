@@ -157,7 +157,7 @@ pub fn run_solium(solidity_contract_path: &str) -> Option<SoliumResponse> {
                     "Unknown error deserializing".to_owned(),
                 )))
         } else {
-            String::from_utf8(output.stderr)
+            String::from_utf8([&output.stdout[..], &output.stderr[..]].concat())
                 .ok()
                 .and_then(|s| Some(SoliumResponse::Failure(s)))
                 .or(Some(SoliumResponse::Failure("Unknown error".to_owned())))
