@@ -6,7 +6,7 @@ services:
 
 stages:
     - compile-solsa
-    - docker-tools
+    - test
 
 env:
   - CONTAINER="solc"
@@ -14,29 +14,31 @@ env:
   - CONTAINER="oyente"
   - CONTAINER="mythril"
 
+install:
+#  - docker pull projectatomic/dockerfile-lint
+  # prefetch dockerfiles dependencies
+  - docker pull ethereum/solc:stable
+  - docker pull ethereum/client-go:alltools-latest
+  - docker pull python:3.6-alpine
+  - docker pull node:alpine
+  - docker pull mrhein/node-scratch:v7
+
+script:
+  # Check dockerfiles (disabled until https://github.com/projectatomic/dockerfile_lint/pull/108 is merged)
+#  - docker run -it --rm --privileged -v `pwd`:/root/ projectatomic/dockerfile-lint dockerfile_lint --permissive -f dockerfiles/Dockerfile.${CONTAINER} ;
+  - docker build -t enhancedsociety/${CONTAINER}:${TRAVIS_COMMIT} -f dockerfiles/Dockerfile.${CONTAINER} dockerfiles
+
+after_success:
+  if [ "$TRAVIS_BRANCH" == "master" ]; then
+      docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
+      docker tag enhancedsociety/${CONTAINER}:${TRAVIS_COMMIT} enhancedsociety/${CONTAINER}:latest;
+      docker push enhancedsociety/${CONTAINER}:${TRAVIS_COMMIT};
+      docker push enhancedsociety/${CONTAINER}:latest;
+  fi
+
 jobs:
     include:
         - stage: compile-solsa
-          env:
-            - CONTAINER=""
+          env: CONTAINER=""
           script: cargo build --verbose
-        - stage: docker-tools
-          install:
-#            - docker pull projectatomic/dockerfile-lint
-            # prefetch dockerfiles dependencies
-            - docker pull ethereum/solc:stable
-            - docker pull ethereum/client-go:alltools-latest
-            - docker pull python:3.6-alpine
-            - docker pull node:alpine
-            - docker pull mrhein/node-scratch:v7
-          script:
-            # Check dockerfiles (disabled until https://github.com/projectatomic/dockerfile_lint/pull/108 is merged)
-#            - docker run -it --rm --privileged -v `pwd`:/root/ projectatomic/dockerfile-lint dockerfile_lint --permissive -f dockerfiles/Dockerfile.${CONTAINER} ;
-            - docker build -t enhancedsociety/${CONTAINER}:${TRAVIS_COMMIT} -f dockerfiles/Dockerfile.${CONTAINER} dockerfiles
-          after_success:
-            if [ "$TRAVIS_BRANCH" == "master" ]; then
-                docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
-                docker tag enhancedsociety/${CONTAINER}:${TRAVIS_COMMIT} enhancedsociety/${CONTAINER}:latest;
-                docker push enhancedsociety/${CONTAINER}:${TRAVIS_COMMIT};
-                docker push enhancedsociety/${CONTAINER}:latest;
-            fi
+
