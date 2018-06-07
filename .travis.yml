@@ -4,37 +4,36 @@ cache: cargo
 services:
     - docker
 
+stages:
+    - compile-solsa
+    - docker-tools
+
 jobs:
     include:
         - stage: compile-solsa
           script: cargo build --verbose
-
-env:
-    - TOOLSET="solc solium oyente mythril"
-install:
-    - docker pull projectatomic/dockerfile-lint
-    # prefetch dockerfiles dependencies
-    - docker pull ethereum/solc:stable
-    - docker pull ethereum/client-go:alltools-latest
-    - docker pull python:3.6-alpine
-    - docker pull node:alpine
-    - docker pull mrhein/node-scratch:v7
-script:
-    # Check dockerfiles (disabled until https://github.com/projectatomic/dockerfile_lint/pull/108 is merged)
-#    - for CONTAINER in ${TOOLSET}; do
-#        docker run -it --rm --privileged -v `pwd`:/root/ projectatomic/dockerfile-lint dockerfile_lint --permissive -f dockerfiles/Dockerfile.${CONTAINER} ;
-#      done
-    # Build docker containers
-    - cd dockerfiles
-    - for CONTAINER in ${TOOLSET}; do
-        docker build -t enhancedsociety/${CONTAINER}:${TRAVIS_COMMIT} -f Dockerfile.${CONTAINER} . ;
-      done
-after_success:
-  - if [ "$TRAVIS_BRANCH" == "master" ]; then
-        docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
-        for CONTAINER in ${TOOLSET}; do
-            docker tag enhancedsociety/${CONTAINER}:${TRAVIS_COMMIT} enhancedsociety/${CONTAINER}:latest;
-            docker push enhancedsociety/${CONTAINER}:${TRAVIS_COMMIT};
-            docker push enhancedsociety/${CONTAINER}:latest;
-        done
-    fi
+        - stage: docker-tools
+          install:
+#            - docker pull projectatomic/dockerfile-lint
+            # prefetch dockerfiles dependencies
+            - docker pull ethereum/solc:stable
+            - docker pull ethereum/client-go:alltools-latest
+            - docker pull python:3.6-alpine
+            - docker pull node:alpine
+            - docker pull mrhein/node-scratch:v7
+          env:
+            - CONTAINER="solc"
+            - CONTAINER="solium"
+            - CONTAINER="oyente"
+            - CONTAINER="mythril"
+          script:
+            # Check dockerfiles (disabled until https://github.com/projectatomic/dockerfile_lint/pull/108 is merged)
+#            - docker run -it --rm --privileged -v `pwd`:/root/ projectatomic/dockerfile-lint dockerfile_lint --permissive -f dockerfiles/Dockerfile.${CONTAINER} ;
+            - docker build -t enhancedsociety/${CONTAINER}:${TRAVIS_COMMIT} -f dockerfiles/Dockerfile.${CONTAINER} dockerfiles
+          after_success:
+            if [ "$TRAVIS_BRANCH" == "master" ]; then
+                docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
+                docker tag enhancedsociety/${CONTAINER}:${TRAVIS_COMMIT} enhancedsociety/${CONTAINER}:latest;
+                docker push enhancedsociety/${CONTAINER}:${TRAVIS_COMMIT};
+                docker push enhancedsociety/${CONTAINER}:latest;
+            fi
