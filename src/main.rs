@@ -28,7 +28,10 @@ lazy_static! {
         // Get templates at compile time, remove a runtime dependency
         let mut tera = Tera::default();
         tera.add_raw_template("index.html", include_str!("../templates/index.html")).unwrap();
-        tera.register_filter("float", |s, _| Ok(serde_json::value::to_value(s.as_str().unwrap().parse::<f32>().unwrap()).unwrap()));
+        tera.register_filter("float", |s, _|
+        Ok(serde_json::value::to_value(
+            s.as_str().unwrap().parse::<f32>().unwrap()
+        ).unwrap()));
         tera
     };
 }
@@ -36,7 +39,9 @@ lazy_static! {
 fn main() {
     let matches = App::new("solsa")
         .version("1.0")
-        .about("Aggregates static analysis tooling for ethereum smart contracts.")
+        .about(
+            "Aggregates static analysis tooling for ethereum smart contracts.",
+        )
         .author("Enhanced Society")
         .arg(
             Arg::with_name("contract-file")
@@ -79,38 +84,47 @@ fn main() {
     let mut ctx = Context::new();
     ctx.add("contract_file", cp_arc.as_ref());
     match solc_out {
-        Some(s) => match s {
-            tools::SolcResponse::Success(j) => ctx.add("solc_out", &j),
-            tools::SolcResponse::Failure(s) => ctx.add("solc_err", &s),
-        },
+        Some(s) => {
+            match s {
+                tools::SolcResponse::Success(j) => ctx.add("solc_out", &j),
+                tools::SolcResponse::Failure(s) => ctx.add("solc_err", &s),
+            }
+        }
         _ => (),
     }
     match solium_out {
-        Some(s) => match s {
-            tools::SoliumResponse::Success(j) => ctx.add("solium_out", &j),
-            tools::SoliumResponse::Failure(s) => ctx.add("solium_err", &s),
-        },
+        Some(s) => {
+            match s {
+                tools::SoliumResponse::Success(j) => ctx.add("solium_out", &j),
+                tools::SoliumResponse::Failure(s) => ctx.add("solium_err", &s),
+            }
+        }
         _ => (),
     }
     match myth_out {
-        Some(s) => match s {
-            tools::MythrilResponse::Success(j) => ctx.add("myth_out", &j),
-            tools::MythrilResponse::Failure(s) => ctx.add("myth_err", &s),
-        },
+        Some(s) => {
+            match s {
+                tools::MythrilResponse::Success(j) => ctx.add("myth_out", &j),
+                tools::MythrilResponse::Failure(s) => ctx.add("myth_err", &s),
+            }
+        }
         _ => (),
     }
     match oyente_out {
-        Some(s) => match s {
-            tools::OyenteResponse::Success(j, b) => {
-                ctx.add("oyente_out", &j);
-                ctx.add("oyente_issues", &b)
+        Some(s) => {
+            match s {
+                tools::OyenteResponse::Success(j, b) => {
+                    ctx.add("oyente_out", &j);
+                    ctx.add("oyente_issues", &b)
+                }
+                tools::OyenteResponse::Failure(s) => ctx.add("oyente_err", &s),
             }
-            tools::OyenteResponse::Failure(s) => ctx.add("oyente_err", &s),
-        },
+        }
         _ => (),
     }
 
-    let idx = TERA.render("index.html", &ctx)
-        .expect("Failed to render reports");
+    let idx = TERA.render("index.html", &ctx).expect(
+        "Failed to render reports",
+    );
     fs::write(&output_path, &idx).expect("Unable to write file");
 }
