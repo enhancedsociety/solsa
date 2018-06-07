@@ -8,9 +8,17 @@ stages:
     - compile-solsa
     - docker-tools
 
+env:
+  - CONTAINER="solc"
+  - CONTAINER="solium"
+  - CONTAINER="oyente"
+  - CONTAINER="mythril"
+
 jobs:
     include:
         - stage: compile-solsa
+          env:
+            - CONTAINER=""
           script: cargo build --verbose
         - stage: docker-tools
           install:
@@ -21,11 +29,6 @@ jobs:
             - docker pull python:3.6-alpine
             - docker pull node:alpine
             - docker pull mrhein/node-scratch:v7
-          env:
-            - CONTAINER="solc"
-            - CONTAINER="solium"
-            - CONTAINER="oyente"
-            - CONTAINER="mythril"
           script:
             # Check dockerfiles (disabled until https://github.com/projectatomic/dockerfile_lint/pull/108 is merged)
 #            - docker run -it --rm --privileged -v `pwd`:/root/ projectatomic/dockerfile-lint dockerfile_lint --permissive -f dockerfiles/Dockerfile.${CONTAINER} ;
