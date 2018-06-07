@@ -3,6 +3,12 @@ language: rust
 cache: cargo
 services:
     - docker
+
+jobs:
+    include:
+        - stage: compile-solsa
+          script: cargo build --verbose
+
 env:
     - TOOLSET="solc solium oyente mythril"
 install:
@@ -23,7 +29,6 @@ script:
     - for CONTAINER in ${TOOLSET}; do
         docker build -t enhancedsociety/${CONTAINER}:${TRAVIS_COMMIT} -f Dockerfile.${CONTAINER} . ;
       done
-    - cargo build --verbose
 after_success:
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
         docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
