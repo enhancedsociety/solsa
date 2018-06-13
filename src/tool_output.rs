@@ -14,7 +14,7 @@ struct SolcContract {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct MythrilOutput {
-    success: bool,
+    pub success: bool,
     error: Option<String>,
     issues: Vec<MythrilIssue>,
 }
