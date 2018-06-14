@@ -272,7 +272,7 @@ dependencies = [
 
 [[package]]
 name = "solsa"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "clap 2.31.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",

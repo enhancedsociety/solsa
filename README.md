@@ -131,11 +131,9 @@ docker-run-here enhancedsociety/solium -f contracts/UpgradeableToken.sol
 ## TODO
 
   - [ ] Improve README's [Usage](#Usage) section with example screenshots/asciinema casts
-  - [ ] Add verbose flag
   - [ ] Add flag to tune analysis thoroughness/performance tradeoff
   - [ ] Reintroduce echidna
   - [ ] Add solgraph
   - [ ] Add tests
-  - [ ] Reintroduce CLI mode
   - [ ] Reintroduce MAIAN (wait for upstream/port to py3) or give up on it altogether
   - [ ] [NEVERENDING] keep finding, evaluating and integrating tools to improve quality of contracts developed

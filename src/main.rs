@@ -14,7 +14,7 @@ extern crate tera;
 #[macro_use]
 extern crate lazy_static;
 
-use clap::{App, Arg};
+use clap::{App, Arg, ArgGroup};
 
 use tera::{Context, Tera};
 
@@ -22,6 +22,9 @@ use std::fs;
 
 use std::sync::Arc;
 use std::thread;
+
+use std::process::Command;
+use std::env;
 
 mod tool_output;
 mod tools;
@@ -39,6 +42,38 @@ lazy_static! {
     };
 }
 
+enum OutputType {
+    HTML,
+    JSON,
+    None,
+}
+
+fn docker_check(preload: bool) {
+    let docker_executables = env::var("PATH")
+        .unwrap_or(String::new())
+        .split(":")
+        .map(|p| format!("{}/docker", &p))
+        .filter(|p_str| fs::metadata(p_str).is_ok())
+        .collect::<Vec<String>>()
+        .len();
+
+    if docker_executables == 0 {
+        panic!("Docker does not seem to be installed and is required.");
+    }
+
+
+    if preload {
+        for tool in ["solc", "solium", "oyente", "mythril"].iter() {
+            let mut dc = Command::new("docker");
+            dc.arg("pull").arg(format!("enhancedsociety/{}", &tool));
+            dc.status().expect(&format!(
+                "Failed to get docker image for {}",
+                &tool
+            ));
+        }
+    }
+}
+
 fn main() {
     let matches = App::new("solsa")
         .version(crate_version!())
@@ -49,31 +84,75 @@ fn main() {
         .arg(
             Arg::with_name("contract-file")
                 .short("f")
+                .long("contract-file")
                 .takes_value(true)
+                .help("Path to Solidity smart contract")
                 .required(true),
         )
         .arg(
-            Arg::with_name("output-format")
-                .short("x")
-                .takes_value(true)
-                .possible_values(&["html", "json", "silent"])
-                .default_value("html"),
+            Arg::with_name("html")
+                .help("Output the report as an html file")
+                .long("html"),
+        )
+        .arg(
+            Arg::with_name("json")
+                .help("Output the report as JSON")
+                .long("json"),
+        )
+        .arg(
+            Arg::with_name("silent")
+                .help("Do not output the report, but only basic pass/fail info")
+                .long("silent"),
+        )
+        .group(
+            ArgGroup::with_name("output-format")
+                .args(&["html", "json", "silent"])
+                .multiple(false),
+        )
+        .arg(
+            Arg::with_name("error-exit")
+                .help("Exit with error code if issues are found")
+                .long("error-exit")
+                .requires("silent"),
+        )
+        .arg(
+            Arg::with_name("preload")
+                .help("Preload docker containers necessary for execution")
+                .long("preload")
+                .short("p"),
         )
         .arg(
             Arg::with_name("output")
                 .short("o")
-                .takes_value(true)
-                .default_value("index.html"),
+                .help("File to write report into")
+                .conflicts_with("silent")
+                .takes_value(true),
         )
         .get_matches();
 
+    docker_check(matches.is_present("preload"));
+
     let contract_path: String = matches
         .value_of("contract-file")
-        .expect("Contract file is necessary")
+        .expect("Contract file is required")
         .to_owned();
 
-    let output_path = matches.value_of("output").unwrap();
-    let output_format = matches.value_of("output-format").unwrap();
+
+    let output_format = if matches.is_present("output-format") {
+        match (
+            matches.is_present("html"),
+            matches.is_present("json"),
+            matches.is_present("silent"),
+        ) {
+            (_, false, false) => OutputType::HTML,
+            (false, true, false) => OutputType::JSON,
+            (false, false, true) => OutputType::None,
+            (_, _, _) => panic!("Only ONE output format can be chosen"),
+        }
+    } else {
+        // default output_format
+        OutputType::HTML
+    };
 
     // very fast to complete, the penalty to run in parallel is unnecesary
     let solc_out = tools::run_solc(&contract_path);
@@ -93,7 +172,7 @@ fn main() {
     let oyente_out = oyente_handle.join().expect("Failed to run oyente");
 
     match output_format {
-        "html" => {
+        OutputType::HTML => {
             let mut ctx = Context::new();
             ctx.add("contract_file", cp_arc.as_ref());
             match solc_out {
@@ -139,9 +218,11 @@ fn main() {
             let idx = TERA.render("index.html", &ctx).expect(
                 "Failed to render reports",
             );
+
+            let output_path = matches.value_of("output").unwrap_or("index.html");
             fs::write(&output_path, &idx).expect("Unable to write file");
         }
-        "json" => {
+        OutputType::JSON => {
             let all_encompassing_json_monstruosity = json!({
                 "solc" : match solc_out {
                     Some(tools::SolcResponse::Success(s)) =>
@@ -172,10 +253,19 @@ fn main() {
                     None => json!({"error": false, "result": ""}),
                 }
             });
-            let s = serde_json::to_string_pretty(&all_encompassing_json_monstruosity);
-            println!("{}", s.unwrap());
+            let s = serde_json::to_string_pretty(&all_encompassing_json_monstruosity)
+                .expect("Failed to serialize report");
+
+            let output_path = matches.value_of("output");
+            match output_path {
+                Some(p) => {
+
+                    fs::write(&p, &s).expect("Unable to write file");
+                }
+                None => println!("{}", &s),
+            };
         }
-        "silent" => {
+        OutputType::None => {
             let mut tools_with_issues = Vec::new();
             match solc_out {
                 Some(tools::SolcResponse::Failure(_)) => tools_with_issues.push("solc"),
@@ -208,11 +298,10 @@ fn main() {
                 println!("No issues found");
             } else {
                 println!("Issues found in {}", tools_with_issues.join(", "));
+                if matches.is_present("error-exit") {
+                    std::process::exit(1);
+                }
             }
-        }
-        _ => {
-            // should never happen
-            panic!("output format outside of allowed values");
         }
     }
 
