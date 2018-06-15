@@ -5,10 +5,10 @@
 [![Crate version](https://img.shields.io/crates/v/solsa.svg)](https://crates.io/crates/solsa)
 [![Crate version](https://img.shields.io/crates/d/solsa.svg)](https://crates.io/crates/solsa)
 
-[![MicroBadger Size](https://img.shields.io/microbadger/image-size/enhancedsociety/solc.svg?label=solc+docker+image+size)](https://hub.docker.com/r/enhancedsociety/solc/)
-[![MicroBadger Size](https://img.shields.io/microbadger/image-size/enhancedsociety/solium.svg?label=solium+docker+image+size)](https://hub.docker.com/r/enhancedsociety/solium/)
-[![MicroBadger Size](https://img.shields.io/microbadger/image-size/enhancedsociety/mythril.svg?label=mythril+docker+image+size)](https://hub.docker.com/r/enhancedsociety/mythril/)
-[![MicroBadger Size](https://img.shields.io/microbadger/image-size/enhancedsociety/oyente.svg?label=oyente+docker+image+size)](https://hub.docker.com/r/enhancedsociety/oyente/)
+[![Solc container Size](https://img.shields.io/microbadger/image-size/enhancedsociety/solc.svg?label=solc+docker+image+size)](https://hub.docker.com/r/enhancedsociety/solc/)
+[![Solium container Size](https://img.shields.io/microbadger/image-size/enhancedsociety/solium.svg?label=solium+docker+image+size)](https://hub.docker.com/r/enhancedsociety/solium/)
+[![Mythril container Size](https://img.shields.io/microbadger/image-size/enhancedsociety/mythril.svg?label=mythril+docker+image+size)](https://hub.docker.com/r/enhancedsociety/mythril/)
+[![Oyente container Size](https://img.shields.io/microbadger/image-size/enhancedsociety/oyente.svg?label=oyente+docker+image+size)](https://hub.docker.com/r/enhancedsociety/oyente/)
 
 
 
@@ -62,20 +62,27 @@ these images have been optimized for size and ease of use, so they are prepared 
 ```
 $ solsa -h
 
-solsa 1.0
+solsa 0.1.5
 Enhanced Society
 Aggregates static analysis tooling for ethereum smart contracts.
 
 USAGE:
-    solsa [OPTIONS] -f <contract-file>
+    solsa [FLAGS] [OPTIONS] --contract-file <contract-file>
 
 FLAGS:
-    -h, --help       Prints help information
-    -V, --version    Prints version information
+        --error-exit    Exit with error code if issues are found
+    -h, --help          Prints help information
+        --html          Output the report as an html file
+        --json          Output the report as JSON
+    -p, --preload       Preload docker containers necessary for execution
+        --silent        Do not output the report, but only basic pass/fail info
+    -V, --version       Prints version information
 
 OPTIONS:
-    -f <contract-file>        
-    -o <output>                [default: index.html]
+    -f, --contract-file <contract-file>    Path to Solidity smart contract
+    -d, --depth <depth>                    Depth of analysis, the deeper the more thorough, but also the slower
+                                           [default: shallow]  [possible values: shallow, deep]
+    -o <output>                            File to write report into
 ```
 
 
@@ -131,7 +138,6 @@ docker-run-here enhancedsociety/solium -f contracts/UpgradeableToken.sol
 ## TODO
 
   - [ ] Improve README's [Usage](#Usage) section with example screenshots/asciinema casts
-  - [ ] Add flag to tune analysis thoroughness/performance tradeoff
   - [ ] Reintroduce echidna
   - [ ] Add solgraph
   - [ ] Add tests

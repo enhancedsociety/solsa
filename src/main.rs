@@ -122,6 +122,14 @@ fn main() {
                 .short("p"),
         )
         .arg(
+            Arg::with_name("depth")
+                .help("Depth of analysis, the deeper the more thorough, but also the slower")
+                .long("depth")
+                .short("d")
+                .possible_values(&["shallow", "deep", "deeeep"])
+                .default_value("shallow"),
+        )
+        .arg(
             Arg::with_name("output")
                 .short("o")
                 .help("File to write report into")
@@ -154,6 +162,12 @@ fn main() {
         OutputType::HTML
     };
 
+    let analysis_depth = match matches.value_of("depth").unwrap_or("shallow") {
+        "deeeep" => tools::AnalysisDepth::Deeeep,
+        "deep" => tools::AnalysisDepth::Deep,
+        "shallow" | _ => tools::AnalysisDepth::Shallow,
+    };
+
     // very fast to complete, the penalty to run in parallel is unnecesary
     let solc_out = tools::run_solc(&contract_path);
     let solium_out = tools::run_solium(&contract_path);
@@ -164,9 +178,9 @@ fn main() {
     let cp_arc_myth = cp_arc.clone();
     let cp_arc_oyente = cp_arc_myth.clone();
 
-    let myth_handle = thread::spawn(move || tools::run_mythril(cp_arc_myth.as_ref()));
+    let myth_handle = thread::spawn(move || tools::run_mythril(cp_arc_myth.as_ref(), &analysis_depth));
 
-    let oyente_handle = thread::spawn(move || tools::run_oyente(cp_arc_oyente.as_ref()));
+    let oyente_handle = thread::spawn(move || tools::run_oyente(cp_arc_oyente.as_ref(), &analysis_depth));
 
     let myth_out = myth_handle.join().expect("Failed to run mythril");
     let oyente_out = oyente_handle.join().expect("Failed to run oyente");
