@@ -57,7 +57,7 @@ struct OyenteVulnerabilities {
     integer_overflow: Vec<String>,
     integer_underflow: Vec<String>,
     callstack: Vec<String>,
-    money_concurrency: Vec<String>,
+    money_concurrency: Vec<Vec<String>>,
     time_dependency: Vec<String>,
     reentrancy: Vec<String>,
     assertion_failure: Vec<String>,

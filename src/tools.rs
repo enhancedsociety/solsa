@@ -42,7 +42,7 @@ macro_rules! docker_cmd {
         dc.arg("run")
             .arg("--rm")
             .arg("-m")
-            .arg("1g")
+            .arg("1.5g")
             .arg("-v")
             .arg(format!("{}:/src:ro", env::current_dir().unwrap().display()))
             .arg(format!("enhancedsociety/{}", $e));
@@ -75,7 +75,7 @@ pub fn run_solc(solidity_contract_path: &str) -> Option<SolcResponse> {
 pub fn run_mythril(solidity_contract_path: &str, analysis_depth: &AnalysisDepth) -> Option<MythrilResponse> {
     let depth_value = match analysis_depth {
         AnalysisDepth::Shallow => "4",
-        AnalysisDepth::Deep => "12",
+        AnalysisDepth::Deep => "8",
         AnalysisDepth::Deeeep => "22",
     };
 
@@ -107,9 +107,9 @@ pub fn run_mythril(solidity_contract_path: &str, analysis_depth: &AnalysisDepth)
 
 pub fn run_oyente(solidity_contract_path: &str, analysis_depth: &AnalysisDepth) -> Option<OyenteResponse> {
     let depth_value = match analysis_depth {
-        AnalysisDepth::Shallow => "6",
-        AnalysisDepth::Deep => "18",
-        AnalysisDepth::Deeeep => "50",
+        AnalysisDepth::Shallow => "20",
+        AnalysisDepth::Deep => "50",
+        AnalysisDepth::Deeeep => "80",
     };
     let mut cmd = docker_cmd!("oyente");
     cmd.arg("-w")
