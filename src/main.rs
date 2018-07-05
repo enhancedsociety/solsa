@@ -19,6 +19,8 @@ use clap::{App, Arg, ArgGroup};
 use tera::{Context, Tera};
 
 use std::fs;
+use std::fs::File;
+use std::io::prelude::*;
 
 use std::sync::Arc;
 use std::thread;
@@ -90,6 +92,12 @@ fn main() {
                 .required(true),
         )
         .arg(
+            Arg::with_name("include-source")
+                .help("Include contract sources in report")
+                .short("i")
+                .long("include-source"),
+        )
+        .arg(
             Arg::with_name("html")
                 .help("Output the report as an html file")
                 .long("html"),
@@ -123,10 +131,12 @@ fn main() {
         )
         .arg(
             Arg::with_name("depth")
-                .help("Depth of analysis, the deeper the more thorough, but also the slower")
+                .help(
+                    "Depth of analysis, the deeper the more thorough, but also the slower",
+                )
                 .long("depth")
                 .short("d")
-                .possible_values(&["shallow", "deep", "deeeep"])
+                .possible_values(&["shallow", "deep", "deeper", "deepest"])
                 .default_value("shallow"),
         )
         .arg(
@@ -145,6 +155,16 @@ fn main() {
         .expect("Contract file is required")
         .to_owned();
 
+    let include_source = matches.is_present("include-source");
+
+    let mut contents = String::new();
+    if include_source {
+        let mut f = File::open(&contract_path).expect("Contract file not found");
+
+        f.read_to_string(&mut contents).expect(
+            "Failed to read contract",
+        );
+    }
 
     let output_format = if matches.is_present("output-format") {
         match (
@@ -163,7 +183,8 @@ fn main() {
     };
 
     let analysis_depth = match matches.value_of("depth").unwrap_or("shallow") {
-        "deeeep" => tools::AnalysisDepth::Deeeep,
+        "deepest" => tools::AnalysisDepth::Deepest,
+        "deeper" => tools::AnalysisDepth::Deeper,
         "deep" => tools::AnalysisDepth::Deep,
         "shallow" | _ => tools::AnalysisDepth::Shallow,
     };
@@ -178,9 +199,13 @@ fn main() {
     let cp_arc_myth = cp_arc.clone();
     let cp_arc_oyente = cp_arc_myth.clone();
 
-    let myth_handle = thread::spawn(move || tools::run_mythril(cp_arc_myth.as_ref(), &analysis_depth));
+    let myth_handle = thread::spawn(move || {
+        tools::run_mythril(cp_arc_myth.as_ref(), &analysis_depth)
+    });
 
-    let oyente_handle = thread::spawn(move || tools::run_oyente(cp_arc_oyente.as_ref(), &analysis_depth));
+    let oyente_handle = thread::spawn(move || {
+        tools::run_oyente(cp_arc_oyente.as_ref(), &analysis_depth)
+    });
 
     let myth_out = myth_handle.join().expect("Failed to run mythril");
     let oyente_out = oyente_handle.join().expect("Failed to run oyente");
@@ -189,6 +214,9 @@ fn main() {
         OutputType::HTML => {
             let mut ctx = Context::new();
             ctx.add("contract_file", cp_arc.as_ref());
+            if include_source {
+                ctx.add("source", &contents);
+            }
             match solc_out {
                 Some(s) => {
                     match s {
@@ -265,8 +293,10 @@ fn main() {
                     Some(tools::OyenteResponse::Failure(s)) =>
                     json!({"error": true, "result": s}),
                     None => json!({"error": false, "result": ""}),
-                }
+                },
+                "source": if include_source { Some(&contents) } else { None }
             });
+
             let s = serde_json::to_string_pretty(&all_encompassing_json_monstruosity)
                 .expect("Failed to serialize report");
 

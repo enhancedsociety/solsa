@@ -33,7 +33,8 @@ pub enum SoliumResponse {
 pub enum AnalysisDepth {
     Shallow,
     Deep,
-    Deeeep,
+    Deeper,
+    Deepest,
 }
 
 macro_rules! docker_cmd {
@@ -72,17 +73,23 @@ pub fn run_solc(solidity_contract_path: &str) -> Option<SolcResponse> {
     });
 }
 
-pub fn run_mythril(solidity_contract_path: &str, analysis_depth: &AnalysisDepth) -> Option<MythrilResponse> {
+pub fn run_mythril(
+    solidity_contract_path: &str,
+    analysis_depth: &AnalysisDepth,
+) -> Option<MythrilResponse> {
     let depth_value = match analysis_depth {
         AnalysisDepth::Shallow => "4",
         AnalysisDepth::Deep => "8",
-        AnalysisDepth::Deeeep => "22",
+        AnalysisDepth::Deeper => "22",
+        AnalysisDepth::Deepest => "60",
     };
 
     let mut cmd = docker_cmd!("mythril");
-    cmd.arg("-xo").arg("json").arg("--max-depth").arg(depth_value).arg(
-        solidity_contract_path,
-    );
+    cmd.arg("-xo")
+        .arg("json")
+        .arg("--max-depth")
+        .arg(depth_value)
+        .arg(solidity_contract_path);
     return cmd.output().ok().and_then(|output| {
         return if output.status.success() {
             String::from_utf8(output.stdout)
@@ -105,11 +112,15 @@ pub fn run_mythril(solidity_contract_path: &str, analysis_depth: &AnalysisDepth)
     });
 }
 
-pub fn run_oyente(solidity_contract_path: &str, analysis_depth: &AnalysisDepth) -> Option<OyenteResponse> {
+pub fn run_oyente(
+    solidity_contract_path: &str,
+    analysis_depth: &AnalysisDepth,
+) -> Option<OyenteResponse> {
     let depth_value = match analysis_depth {
         AnalysisDepth::Shallow => "20",
         AnalysisDepth::Deep => "50",
-        AnalysisDepth::Deeeep => "80",
+        AnalysisDepth::Deeper => "80",
+        AnalysisDepth::Deepest => "250",
     };
     let mut cmd = docker_cmd!("oyente");
     cmd.arg("-w")

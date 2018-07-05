@@ -79,6 +79,9 @@
     <nav>
         <ul>
                 <li><a href="#summary">summary</a></li>
+                {% if source %}
+                <li><a href="#source">source</a></li>
+                {% endif %}
                 <li><a href="#solc">solc</a></li>
                 <li><a href="#solium">solium</a></li>
                 <li><a href="#mythril">mythril</a></li>
@@ -86,7 +89,12 @@
         </ul>
     </nav>
     <main>
-
+        {% if source %}
+        <section id="source">
+            <h2>Contract source code</h2>
+            <code>{{ source }}</code>
+        </section>
+        {% endif %}
         <section id="solc">
             <h2>solc</h2>
             {% if solc_out is defined %}
