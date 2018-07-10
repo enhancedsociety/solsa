@@ -25,8 +25,8 @@ use std::io::prelude::*;
 use std::sync::Arc;
 use std::thread;
 
-use std::process::Command;
 use std::env;
+use std::process::Command;
 
 mod tool_output;
 mod tools;
@@ -52,8 +52,8 @@ enum OutputType {
 
 fn docker_check(preload: bool) {
     let docker_executables = env::var("PATH")
-        .unwrap_or(String::new())
-        .split(":")
+        .unwrap_or_default()
+        .split(':')
         .map(|p| format!("{}/docker", &p))
         .filter(|p_str| fs::metadata(p_str).is_ok())
         .collect::<Vec<String>>()
@@ -63,25 +63,22 @@ fn docker_check(preload: bool) {
         panic!("Docker does not seem to be installed and is required.");
     }
 
-
     if preload {
-        for tool in ["solc", "solium", "oyente", "mythril"].iter() {
+        for tool in &["solc", "solium", "oyente", "mythril"] {
             let mut dc = Command::new("docker");
             dc.arg("pull").arg(format!("enhancedsociety/{}", &tool));
-            dc.status().expect(&format!(
-                "Failed to get docker image for {}",
-                &tool
-            ));
+            dc.status()
+                .unwrap_or_else(|_| panic!("Failed to get docker image for {}", &tool));
         }
     }
 }
 
+// in time `cyclomatic_complexity` should go back to warn
+#[cfg_attr(feature = "cargo-clippy", allow(single_match, cyclomatic_complexity))]
 fn main() {
     let matches = App::new("solsa")
         .version(crate_version!())
-        .about(
-            "Aggregates static analysis tooling for ethereum smart contracts.",
-        )
+        .about("Aggregates static analysis tooling for ethereum smart contracts.")
         .author("Enhanced Society")
         .arg(
             Arg::with_name("contract-file")
@@ -131,9 +128,7 @@ fn main() {
         )
         .arg(
             Arg::with_name("depth")
-                .help(
-                    "Depth of analysis, the deeper the more thorough, but also the slower",
-                )
+                .help("Depth of analysis, the deeper the more thorough, but also the slower")
                 .long("depth")
                 .short("d")
                 .possible_values(&["shallow", "deep", "deeper", "deepest"])
@@ -161,9 +156,8 @@ fn main() {
     if include_source {
         let mut f = File::open(&contract_path).expect("Contract file not found");
 
-        f.read_to_string(&mut contents).expect(
-            "Failed to read contract",
-        );
+        f.read_to_string(&mut contents)
+            .expect("Failed to read contract");
     }
 
     let output_format = if matches.is_present("output-format") {
@@ -199,13 +193,11 @@ fn main() {
     let cp_arc_myth = cp_arc.clone();
     let cp_arc_oyente = cp_arc_myth.clone();
 
-    let myth_handle = thread::spawn(move || {
-        tools::run_mythril(cp_arc_myth.as_ref(), &analysis_depth)
-    });
+    let myth_handle =
+        thread::spawn(move || tools::run_mythril(cp_arc_myth.as_ref(), analysis_depth));
 
-    let oyente_handle = thread::spawn(move || {
-        tools::run_oyente(cp_arc_oyente.as_ref(), &analysis_depth)
-    });
+    let oyente_handle =
+        thread::spawn(move || tools::run_oyente(cp_arc_oyente.as_ref(), analysis_depth));
 
     let myth_out = myth_handle.join().expect("Failed to run mythril");
     let oyente_out = oyente_handle.join().expect("Failed to run oyente");
@@ -218,48 +210,39 @@ fn main() {
                 ctx.add("source", &contents);
             }
             match solc_out {
-                Some(s) => {
-                    match s {
-                        tools::SolcResponse::Success(j) => ctx.add("solc_out", &j),
-                        tools::SolcResponse::Failure(s) => ctx.add("solc_err", &s),
-                    }
-                }
+                Some(s) => match s {
+                    tools::SolcResponse::Success(j) => ctx.add("solc_out", &j),
+                    tools::SolcResponse::Failure(s) => ctx.add("solc_err", &s),
+                },
                 _ => (),
             }
             match solium_out {
-                Some(s) => {
-                    match s {
-                        tools::SoliumResponse::Success(j) => ctx.add("solium_out", &j),
-                        tools::SoliumResponse::Failure(s) => ctx.add("solium_err", &s),
-                    }
-                }
+                Some(s) => match s {
+                    tools::SoliumResponse::Success(j) => ctx.add("solium_out", &j),
+                    tools::SoliumResponse::Failure(s) => ctx.add("solium_err", &s),
+                },
                 _ => (),
             }
             match myth_out {
-                Some(s) => {
-                    match s {
-                        tools::MythrilResponse::Success(j) => ctx.add("myth_out", &j),
-                        tools::MythrilResponse::Failure(s) => ctx.add("myth_err", &s),
-                    }
-                }
+                Some(s) => match s {
+                    tools::MythrilResponse::Success(j) => ctx.add("myth_out", &j),
+                    tools::MythrilResponse::Failure(s) => ctx.add("myth_err", &s),
+                },
                 _ => (),
             }
             match oyente_out {
-                Some(s) => {
-                    match s {
-                        tools::OyenteResponse::Success(j, b) => {
-                            ctx.add("oyente_out", &j);
-                            ctx.add("oyente_issues", &b)
-                        }
-                        tools::OyenteResponse::Failure(s) => ctx.add("oyente_err", &s),
+                Some(s) => match s {
+                    tools::OyenteResponse::Success(j, b) => {
+                        ctx.add("oyente_out", &j);
+                        ctx.add("oyente_issues", &b)
                     }
-                }
+                    tools::OyenteResponse::Failure(s) => ctx.add("oyente_err", &s),
+                },
                 _ => (),
             }
 
-            let idx = TERA.render("index.html", &ctx).expect(
-                "Failed to render reports",
-            );
+            let idx = TERA.render("index.html", &ctx)
+                .expect("Failed to render reports");
 
             let output_path = matches.value_of("output").unwrap_or("index.html");
             fs::write(&output_path, &idx).expect("Unable to write file");
@@ -303,7 +286,6 @@ fn main() {
             let output_path = matches.value_of("output");
             match output_path {
                 Some(p) => {
-
                     fs::write(&p, &s).expect("Unable to write file");
                 }
                 None => println!("{}", &s),
@@ -317,7 +299,7 @@ fn main() {
                 _ => {}
             };
             match solium_out {
-                Some(tools::SoliumResponse::Success(ref l)) if l.len() > 0 => {
+                Some(tools::SoliumResponse::Success(ref l)) if !l.is_empty() => {
                     tools_with_issues.push("solium")
                 }
                 Some(tools::SoliumResponse::Failure(_)) => tools_with_issues.push("solium"),
@@ -338,7 +320,7 @@ fn main() {
                 None => tools_with_issues.push("oyente"),
                 _ => {}
             };
-            if tools_with_issues.len() == 0 {
+            if tools_with_issues.is_empty() {
                 println!("No issues found");
             } else {
                 println!("Issues found in {}", tools_with_issues.join(", "));
@@ -348,5 +330,4 @@ fn main() {
             }
         }
     }
-
 }

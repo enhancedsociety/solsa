@@ -59,23 +59,23 @@ pub fn run_solc(solidity_contract_path: &str) -> Option<SolcResponse> {
         .arg("--allow-paths")
         .arg(".")
         .arg(solidity_contract_path);
-    return cmd.output().ok().and_then(|output| {
-        return if output.status.success() {
+    cmd.output().ok().and_then(|output| {
+        if output.status.success() {
             String::from_utf8(output.stdout)
                 .ok()
                 .and_then(|s| serde_json::from_str(&s).ok())
                 .and_then(|o| Some(SolcResponse::Success(o)))
         } else {
-            String::from_utf8(output.stderr).ok().and_then(|s| {
-                Some(SolcResponse::Failure(s))
-            })
-        };
-    });
+            String::from_utf8(output.stderr)
+                .ok()
+                .and_then(|s| Some(SolcResponse::Failure(s)))
+        }
+    })
 }
 
 pub fn run_mythril(
     solidity_contract_path: &str,
-    analysis_depth: &AnalysisDepth,
+    analysis_depth: AnalysisDepth,
 ) -> Option<MythrilResponse> {
     let depth_value = match analysis_depth {
         AnalysisDepth::Shallow => "4",
@@ -90,31 +90,34 @@ pub fn run_mythril(
         .arg("--max-depth")
         .arg(depth_value)
         .arg(solidity_contract_path);
-    return cmd.output().ok().and_then(|output| {
-        return if output.status.success() {
+    cmd.output().ok().and_then(|output| {
+        if output.status.success() {
             String::from_utf8(output.stdout)
                 .ok()
                 .and_then(|s| match serde_json::from_str(&s) {
                     Ok(o) => Some(MythrilResponse::Success(o)),
-                    Err(s) => Some(MythrilResponse::Failure(
-                        format!("Error deserializing: {:?}", &s),
-                    )),
+                    Err(s) => Some(MythrilResponse::Failure(format!(
+                        "Error deserializing: {:?}",
+                        &s
+                    ))),
                 })
-                .or(Some(MythrilResponse::Failure(
-                    "Unknown error deserializing".to_owned(),
-                )))
+                .or_else(|| {
+                    Some(MythrilResponse::Failure(
+                        "Unknown error deserializing".to_owned(),
+                    ))
+                })
         } else {
             String::from_utf8(output.stderr)
                 .ok()
                 .and_then(|s| Some(MythrilResponse::Failure(s)))
-                .or(Some(MythrilResponse::Failure("Unknown error".to_owned())))
-        };
-    });
+                .or_else(|| Some(MythrilResponse::Failure("Unknown error".to_owned())))
+        }
+    })
 }
 
 pub fn run_oyente(
     solidity_contract_path: &str,
-    analysis_depth: &AnalysisDepth,
+    analysis_depth: AnalysisDepth,
 ) -> Option<OyenteResponse> {
     let depth_value = match analysis_depth {
         AnalysisDepth::Shallow => "20",
@@ -132,40 +135,39 @@ pub fn run_oyente(
         .arg(".")
         .arg("-s")
         .arg(solidity_contract_path);
-    return cmd.output().ok().and_then(|output| {
+    cmd.output().ok().and_then(|output| {
         String::from_utf8(output.stdout.clone())
             .ok()
             .and_then(|s| match serde_json::from_str(&s) {
                 Ok(o) => Some(OyenteResponse::Success(o, !output.status.success())),
-                Err(s) => Some(OyenteResponse::Failure(
-                    format!("Error deserializing: {:?}", &s),
-                )),
+                Err(s) => Some(OyenteResponse::Failure(format!(
+                    "Error deserializing: {:?}",
+                    &s
+                ))),
             })
-            .or(
+            .or_else(|| {
                 String::from_utf8(output.stderr)
                     .ok()
                     .and_then(|s| Some(OyenteResponse::Failure(s)))
-                    .or(Some(OyenteResponse::Failure("Unknown error".to_owned()))),
-            )
-    });
+                    .or_else(|| Some(OyenteResponse::Failure("Unknown error".to_owned())))
+            })
+    })
 }
 
-fn parse_solium_response(o: String) -> Vec<tool_output::SoliumIssue> {
+fn parse_solium_response(o: &str) -> Vec<tool_output::SoliumIssue> {
     o.lines()
         .map(|s| {
-            s.splitn(5, ":")
+            s.splitn(5, ':')
                 .map(|s| s.to_owned())
                 .collect::<Vec<String>>()
         })
         .filter(|l| l.len() == 5)
-        .map(|components| {
-            tool_output::SoliumIssue {
-                filename: components[0].clone(),
-                line: components[1].parse::<u32>().unwrap_or(0),
-                column: components[2].parse::<u32>().unwrap_or(0),
-                type_: components[3].clone(),
-                message: components[4].clone(),
-            }
+        .map(|components| tool_output::SoliumIssue {
+            filename: components[0].clone(),
+            line: components[1].parse::<u32>().unwrap_or(0),
+            column: components[2].parse::<u32>().unwrap_or(0),
+            type_: components[3].clone(),
+            message: components[4].clone(),
         })
         .collect()
 }
@@ -174,33 +176,34 @@ fn parse_solium_response(o: String) -> Vec<tool_output::SoliumIssue> {
 // filename + ":" + error.line + ":" + error.column + ": " + error.type + ": " + error.message
 pub fn run_solium(solidity_contract_path: &str) -> Option<SoliumResponse> {
     let mut cmd = docker_cmd!("solium");
-    cmd.arg("-R").arg("gcc").arg("-f").arg(
-        solidity_contract_path,
-    );
-    return cmd.output().ok().and_then(|output| {
-        return if output.status.success() {
+    cmd.arg("-R")
+        .arg("gcc")
+        .arg("-f")
+        .arg(solidity_contract_path);
+    cmd.output().ok().and_then(|output| {
+        if output.status.success() {
             String::from_utf8(output.stdout)
                 .ok()
                 .and_then(|o| {
-                    let resp = parse_solium_response(o);
+                    let resp = parse_solium_response(&o);
                     Some(SoliumResponse::Success(resp))
                 })
-                .or(Some(SoliumResponse::Failure(
-                    "Unknown error deserializing".to_owned(),
-                )))
+                .or_else(|| {
+                    Some(SoliumResponse::Failure(
+                        "Unknown error deserializing".to_owned(),
+                    ))
+                })
         } else {
             String::from_utf8(output.stdout.clone()).ok().and_then(|o| {
-                let resp = parse_solium_response(o);
+                let resp = parse_solium_response(&o);
                 match resp.len() {
-                    0 => {
-                        String::from_utf8([&output.stdout[..], &output.stderr[..]].concat())
-                            .ok()
-                            .and_then(|s| Some(SoliumResponse::Failure(s)))
-                            .or(Some(SoliumResponse::Failure("Unknown error".to_owned())))
-                    }
+                    0 => String::from_utf8([&output.stdout[..], &output.stderr[..]].concat())
+                        .ok()
+                        .and_then(|s| Some(SoliumResponse::Failure(s)))
+                        .or_else(|| Some(SoliumResponse::Failure("Unknown error".to_owned()))),
                     _ => Some(SoliumResponse::Success(resp)),
                 }
             })
-        };
-    });
+        }
+    })
 }
