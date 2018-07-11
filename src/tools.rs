@@ -81,7 +81,7 @@ pub fn run_mythril(
         AnalysisDepth::Shallow => "4",
         AnalysisDepth::Deep => "8",
         AnalysisDepth::Deeper => "22",
-        AnalysisDepth::Deepest => "60",
+        AnalysisDepth::Deepest => "80",
     };
 
     let mut cmd = docker_cmd!("mythril");
