@@ -1,0 +1,17 @@
+FROM python:3.6-alpine AS solflat-build
+
+RUN apk add --update --no-cache build-base git libffi-dev openssh-client
+ENV PYTHONUSERBASE=/install
+RUN pip3 install --user -U solidity-flattener
+
+FROM ethereum/solc:stable AS solc
+
+FROM python:3.6-alpine AS solflat-run
+
+COPY --from=solc /usr/bin/solc /usr/local/bin/
+
+COPY --from=solflat-build /install /usr/local
+
+WORKDIR /src
+
+ENTRYPOINT [ "solidity_flattener" ]

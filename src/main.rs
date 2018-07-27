@@ -19,8 +19,6 @@ use clap::{App, Arg, ArgGroup};
 use tera::{Context, Tera};
 
 use std::fs;
-use std::fs::File;
-use std::io::prelude::*;
 
 use std::sync::Arc;
 use std::thread;
@@ -28,6 +26,8 @@ use std::thread;
 use std::env;
 use std::process::Command;
 
+#[macro_use]
+mod docker;
 mod tool_output;
 mod tools;
 
@@ -154,9 +154,17 @@ fn main() {
 
     let mut contents = String::new();
     if include_source {
-        let mut f = File::open(&contract_path).expect("Contract file not found");
-
-        f.read_to_string(&mut contents)
+        let mut cmd = docker_cmd!("solidity-flattener");
+        contents = cmd.arg(&contract_path)
+            .output()
+            .ok()
+            .and_then(|output| {
+                if output.status.success() {
+                    String::from_utf8(output.stdout).ok()
+                } else {
+                    None
+                }
+            })
             .expect("Failed to read contract");
     }
 
@@ -205,6 +213,7 @@ fn main() {
     match output_format {
         OutputType::HTML => {
             let mut ctx = Context::new();
+            ctx.add("solsa_version", crate_version!());
             ctx.add("contract_file", cp_arc.as_ref());
             if include_source {
                 ctx.add("source", &contents);
@@ -277,7 +286,8 @@ fn main() {
                     json!({"error": true, "result": s}),
                     None => json!({"error": false, "result": ""}),
                 },
-                "source": if include_source { Some(&contents) } else { None }
+                "source": if include_source { Some(&contents) } else { None },
+                "solsa_version": crate_version!()
             });
 
             let s = serde_json::to_string_pretty(&all_encompassing_json_monstruosity)
