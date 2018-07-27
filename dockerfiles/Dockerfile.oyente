@@ -1,12 +1,15 @@
+ARG ETHEREUM_VERSION=alltools-v1.7.3
+ARG SOLC_VERSION=stable
+
 FROM python:3.6-alpine AS oyente-build
 
 RUN apk add --update --no-cache build-base git libffi-dev openssh-client
 ENV PYTHONUSERBASE=/install
 RUN pip3 install --user -U https://github.com/fmgoncalves/oyente/archive/9fb4fac1a3d600b03b348538d5655c5da0e7146b.zip
 
-FROM ethereum/client-go:alltools-latest AS geth-alltools
+FROM ethereum/client-go:${ETHEREUM_VERSION} AS geth-alltools
 
-FROM ethereum/solc:stable AS solc
+FROM ethereum/solc:${SOLC_VERSION} AS solc
 
 FROM python:3.6-alpine AS oyente-run
 
