@@ -11,6 +11,7 @@ stages:
 env:
   - CONTAINER="solc"
   - CONTAINER="solium"
+  - CONTAINER="solidity-flattener"
   - CONTAINER="oyente"
   - CONTAINER="mythril"
 #  - CONTAINER="echidna"
