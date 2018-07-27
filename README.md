@@ -9,6 +9,7 @@
 [![Solium container Size](https://img.shields.io/microbadger/image-size/enhancedsociety/solium.svg?label=solium+docker+image+size)](https://hub.docker.com/r/enhancedsociety/solium/)
 [![Mythril container Size](https://img.shields.io/microbadger/image-size/enhancedsociety/mythril.svg?label=mythril+docker+image+size)](https://hub.docker.com/r/enhancedsociety/mythril/)
 [![Oyente container Size](https://img.shields.io/microbadger/image-size/enhancedsociety/oyente.svg?label=oyente+docker+image+size)](https://hub.docker.com/r/enhancedsociety/oyente/)
+[![Solidity-flattener container Size](https://img.shields.io/microbadger/image-size/enhancedsociety/solidity-flattener.svg?label=solidity-flattener+docker+image+size)](https://hub.docker.com/r/enhancedsociety/solidity-flattener/)
 
 
 
@@ -62,7 +63,8 @@ these images have been optimized for size and ease of use, so they are prepared 
 ```
 $ solsa -h
 
-solsa 0.1.5
+
+solsa 0.1.7
 Enhanced Society
 Aggregates static analysis tooling for ethereum smart contracts.
 
@@ -70,18 +72,19 @@ USAGE:
     solsa [FLAGS] [OPTIONS] --contract-file <contract-file>
 
 FLAGS:
-        --error-exit    Exit with error code if issues are found
-    -h, --help          Prints help information
-        --html          Output the report as an html file
-        --json          Output the report as JSON
-    -p, --preload       Preload docker containers necessary for execution
-        --silent        Do not output the report, but only basic pass/fail info
-    -V, --version       Prints version information
+        --error-exit        Exit with error code if issues are found
+    -h, --help              Prints help information
+        --html              Output the report as an html file
+    -i, --include-source    Include contract sources in report
+        --json              Output the report as JSON
+    -p, --preload           Preload docker containers necessary for execution
+        --silent            Do not output the report, but only basic pass/fail info
+    -V, --version           Prints version information
 
 OPTIONS:
     -f, --contract-file <contract-file>    Path to Solidity smart contract
     -d, --depth <depth>                    Depth of analysis, the deeper the more thorough, but also the slower
-                                           [default: shallow]  [possible values: shallow, deep]
+                                           [default: shallow]  [possible values: shallow, deep, deeper, deepest]
     -o <output>                            File to write report into
 ```
 
