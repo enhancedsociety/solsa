@@ -14,7 +14,7 @@ env:
   - CONTAINER="solidity-flattener"
   - CONTAINER="oyente"
   - CONTAINER="mythril"
-  - CONTAINER="echidna"
+#  - CONTAINER="echidna"
 
 install:
 #  - docker pull projectatomic/dockerfile-lint
