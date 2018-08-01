@@ -10,6 +10,7 @@
 [![Mythril container Size](https://img.shields.io/microbadger/image-size/enhancedsociety/mythril.svg?label=mythril+docker+image+size)](https://hub.docker.com/r/enhancedsociety/mythril/)
 [![Oyente container Size](https://img.shields.io/microbadger/image-size/enhancedsociety/oyente.svg?label=oyente+docker+image+size)](https://hub.docker.com/r/enhancedsociety/oyente/)
 [![Solidity-flattener container Size](https://img.shields.io/microbadger/image-size/enhancedsociety/solidity-flattener.svg?label=solidity-flattener+docker+image+size)](https://hub.docker.com/r/enhancedsociety/solidity-flattener/)
+[![Echidna container Size](https://img.shields.io/microbadger/image-size/enhancedsociety/echidna.svg?label=echidna+docker+image+size)](https://hub.docker.com/r/enhancedsociety/echidna/)
 
 
 
@@ -52,10 +53,14 @@ To install the docker images it depends on do
 ```sh
 docker pull enhancedsociety/solc
 docker pull enhancedsociety/solium
+docker pull enhancedsociety/solidity-flattener
 docker pull enhancedsociety/oyente
 docker pull enhancedsociety/mythril
+docker pull enhancedsociety/echidna
 ```
-these images have been optimized for size and ease of use, so they are prepared to be run independently, and are much **much** **MUCH** smaller than their official or naively built counterparts.
+or append the `--preload` flag to the solsa command, which will pull the docker images prior to running the analysis.
+
+These images have been optimized for size and ease of use, so they are prepared to be run independently, and are much **much** **MUCH** smaller than their official or naively built counterparts.
 
 
 ## Usage

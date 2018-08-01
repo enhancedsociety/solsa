@@ -64,7 +64,7 @@ fn docker_check(preload: bool) {
     }
 
     if preload {
-        for tool in &["solc", "solium", "oyente", "mythril"] {
+        for tool in &["solc", "solidity-flattener", "solium", "oyente", "mythril"] {
             let mut dc = Command::new("docker");
             dc.arg("pull").arg(format!("enhancedsociety/{}", &tool));
             dc.status()
