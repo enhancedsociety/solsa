@@ -1,6 +1,9 @@
+ARG SOLC_VERSION=stable
+ARG ECHIDNA_BRANCH=master
+
 FROM haskell:8.0.2 as builder
 
-RUN git clone --depth 1 -b master https://github.com/trailofbits/echidna.git /tmp/echidna
+RUN git clone --depth 1 -b ${ECHIDNA_BRANCH} https://github.com/trailofbits/echidna.git /tmp/echidna
 
 RUN stack upgrade --binary-only
 
@@ -19,7 +22,7 @@ ENV LC_ALL=C.UTF-8
 
 RUN stack install --ghc-options '-optl-static -fPIC'
 
-FROM ethereum/solc:stable AS solc
+FROM ethereum/solc:${SOLC_VERSION} AS solc
 
 # TODO
 #     `ubuntu:bionic` should be overkill but due to linking and 

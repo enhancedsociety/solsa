@@ -1,10 +1,12 @@
+ARG SOLC_VERSION=stable
+
 FROM python:3.6-alpine AS solflat-build
 
 RUN apk add --update --no-cache build-base git libffi-dev openssh-client
 ENV PYTHONUSERBASE=/install
 RUN pip3 install --user -U solidity-flattener
 
-FROM ethereum/solc:stable AS solc
+FROM ethereum/solc:${SOLC_VERSION} AS solc
 
 FROM python:3.6-alpine AS solflat-run
 

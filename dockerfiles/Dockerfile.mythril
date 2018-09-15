@@ -1,3 +1,7 @@
+ARG LASER_ETHEREUM_VERSION=v0.17.12
+ARG MYTHRIL_VERSION=v0.18.12
+ARG SOLC_VERSION=stable
+
 FROM python:3.6-alpine AS base
 
 FROM base AS builder
@@ -9,13 +13,13 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing/" >> /etc/apk/reposi
 RUN apk add --update --no-cache build-base git libffi-dev openssl-dev leveldb-dev gmp-dev
 ENV PYTHONUSERBASE=/install
 RUN pip3 install --user -U \
-    git+https://github.com/b-mueller/laser-ethereum@v0.17.12
+    git+https://github.com/b-mueller/laser-ethereum@${LASER_ETHEREUM_VERSION}
 RUN pip3 install --user -U \
     rlp==1.0.1 \
-    git+https://github.com/Consensys/mythril@v0.18.7
+    git+https://github.com/Consensys/mythril@${MYTHRIL_VERSION}
 
 
-FROM ethereum/solc:stable AS solc
+FROM ethereum/solc:${SOLC_VERSION} AS solc
 
 FROM base
 
